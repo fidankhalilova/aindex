@@ -65,7 +65,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FF] flex">
       {/* Left Panel */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4] items-center justify-center p-16 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4] items-center justify-center p-16 relative overflow-hidden">
         <div className="relative text-center z-10">
           <h2 className="font-bold text-white text-5xl leading-tight mb-4">
             Welcome Back
@@ -83,7 +83,7 @@ export default function LoginPage() {
             href="/"
             className="flex items-center gap-3 justify-center mb-10 lg:hidden"
           >
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#2E4BC6] to-[#00C2CB] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#2E4BC6] to-[#00C2CB] flex items-center justify-center">
               <span className="text-white font-bold text-2xl">A</span>
             </div>
             <span className="font-bold text-2xl text-[#1B1464]">AIndex</span>
@@ -161,7 +161,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 hover:brightness-105 disabled:opacity-70"
+              className="w-full bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 hover:brightness-105 disabled:opacity-70"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white animate-spin rounded-full" />

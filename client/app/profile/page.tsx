@@ -122,7 +122,7 @@ export default function ProfilePage() {
         </h2>
         <Link
           href="/auth/login"
-          className="bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-8 py-3.5 rounded-2xl"
+          className="bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-8 py-3.5 rounded-2xl"
         >
           Sign In
         </Link>
@@ -146,12 +146,12 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-[#F8F9FF] pt-14">
       {/* Hero Header */}
-      <div className="bg-gradient-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4] relative overflow-hidden">
+      <div className="bg-linear-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4] relative overflow-hidden">
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
           <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-28 h-28 rounded-3xl overflow-hidden border-4 border-white/30 shadow-xl bg-gradient-to-br from-[#4A6DE0] to-[#00C2CB]">
+              <div className="w-28 h-28 rounded-3xl overflow-hidden border-4 border-white/30 shadow-xl bg-linear-to-br from-[#4A6DE0] to-[#00C2CB]">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
@@ -374,7 +374,7 @@ export default function ProfilePage() {
             </p>
             <Link
               href="/tools/submit"
-              className="mt-6 inline-block bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white px-8 py-3 rounded-2xl font-semibold"
+              className="mt-6 inline-block bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white px-8 py-3 rounded-2xl font-semibold"
             >
               Submit Your First Tool
             </Link>
@@ -387,7 +387,7 @@ export default function ProfilePage() {
                 className="bg-white rounded-3xl p-6 border border-[#E8EAFF]"
               >
                 <div className="flex gap-4">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF] flex-shrink-0">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF] shrink-0">
                     {tool.logo && (
                       <Image
                         src={getStrapiMedia(tool.logo.url)!}

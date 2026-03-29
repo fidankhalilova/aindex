@@ -67,7 +67,7 @@ export default function Navbar() {
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
           ? "bg-white shadow-sm border-b border-[#E8EAFF]"
-          : "bg-gradient-to-r from-[#1B1464] to-[#2E4BC6]"
+          : "bg-linear-to-r from-[#1B1464] to-[#2E4BC6]"
       }`}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
@@ -146,7 +146,7 @@ export default function Navbar() {
                     scrolled ? "hover:bg-gray-100" : "hover:bg-white/10"
                   }`}
                 >
-                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 bg-gradient-to-br from-[#2E4BC6] to-[#00C2CB]">
+                  <div className="w-8 h-8 rounded-full overflow-hidden border border-white/30 bg-linear-to-br from-[#2E4BC6] to-[#00C2CB]">
                     {avatarUrl ? (
                       <Image
                         src={avatarUrl}

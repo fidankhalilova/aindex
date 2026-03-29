@@ -50,7 +50,7 @@ export default function ToolCard({
       className={`group bg-white rounded-3xl shadow-[0_4px_20px_rgba(27,20,100,0.06)] 
                   hover:shadow-[0_10px_32px_rgba(27,20,100,0.10)] hover:-translate-y-0.5 
                   transition-all duration-300 overflow-hidden flex flex-col h-full 
-                  min-w-[280px] w-full border border-transparent`}
+                  min-w-70 w-full border border-transparent`}
     >
       {/* Main Content */}
       <div className="p-5 flex-1">

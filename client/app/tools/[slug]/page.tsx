@@ -169,7 +169,7 @@ export default function ToolDetailPage() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row gap-6 sm:items-start">
               {/* Logo */}
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden border border-[#E8EAFF] bg-white flex-shrink-0 flex items-center justify-center">
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden border border-[#E8EAFF] bg-white shrink-0 flex items-center justify-center">
                 {logoUrl ? (
                   <Image
                     src={logoUrl}
@@ -293,7 +293,7 @@ export default function ToolDetailPage() {
           </div>
 
           {/* Reviews Sidebar */}
-          <div className="lg:w-96 flex-shrink-0">
+          <div className="lg:w-96 shrink-0">
             <div className="bg-white border border-[#E8EAFF] rounded-3xl p-7 lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-2xl font-semibold text-[#1B1464]">
@@ -354,7 +354,7 @@ export default function ToolDetailPage() {
                   <button
                     type="submit"
                     disabled={createReviewMutation.isPending}
-                    className="w-full bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:brightness-105 transition-all disabled:opacity-70"
+                    className="w-full bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-2 hover:brightness-105 transition-all disabled:opacity-70"
                   >
                     {createReviewMutation.isPending ? (
                       "Submitting..."
