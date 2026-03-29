@@ -21,13 +21,13 @@
       "targetField": "name",
       "required": true
     },
-    "description": {
-      "type": "richtext",
-      "required": true
-    },
     "shortDescription": {
       "type": "text",
       "maxLength": 160,
+      "required": true
+    },
+    "description": {
+      "type": "richtext",
       "required": true
     },
     "website": {
@@ -37,25 +37,21 @@
     "logo": {
       "type": "media",
       "multiple": false,
+      "required": true,
       "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
+        "images"
       ]
     },
     "screenshots": {
       "type": "media",
       "multiple": true,
       "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
+        "images"
       ]
     },
     "pricing": {
       "type": "enumeration",
+      "required": true,
       "enum": [
         "Free",
         "Freemium",
@@ -66,14 +62,9 @@
     "pricingDetails": {
       "type": "text"
     },
-    "features": {
-      "type": "json"
-    },
-    "tags": {
-      "type": "json"
-    },
     "averageRating": {
       "type": "decimal",
+      "required": false,
       "default": 0,
       "min": 0,
       "max": 5
@@ -103,11 +94,11 @@
         "Rejected"
       ]
     },
-    "category": {
+    "categories": {
       "type": "relation",
-      "relation": "manyToOne",
+      "relation": "oneToMany",
       "target": "api::category.category",
-      "inversedBy": "tools"
+      "mappedBy": "tool"
     },
     "submittedBy": {
       "type": "relation",
@@ -118,7 +109,20 @@
     "reviews": {
       "type": "relation",
       "relation": "oneToMany",
-      "target": "api::review.review"
+      "target": "api::review.review",
+      "mappedBy": "tool"
+    },
+    "tags": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::tag.tag",
+      "mappedBy": "tool"
+    },
+    "features": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::feature.feature",
+      "mappedBy": "tool"
     }
   }
 }

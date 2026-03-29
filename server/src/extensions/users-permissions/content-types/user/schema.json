@@ -66,24 +66,17 @@
       "inversedBy": "users",
       "configurable": false
     },
-    "bio": {
-      "type": "text"
-    },
-    "avatar": {
-      "type": "media",
-      "multiple": false,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
-    },
     "tools": {
       "type": "relation",
       "relation": "oneToMany",
       "target": "api::tool.tool",
       "mappedBy": "submittedBy"
+    },
+    "reviews": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::review.review",
+      "mappedBy": "user"
     }
   }
 }
