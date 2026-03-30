@@ -376,6 +376,8 @@ export function useSubmitTool() {
 // CATEGORIES
 // ===========================================================================
 
+// lib/api.ts - Update fetchCategories to a simpler version
+
 export async function fetchCategories(): Promise<ApiResponse<Category[]>> {
   const query = buildQuery({
     sort: "name:asc",
@@ -701,3 +703,5 @@ export async function prefetchCategories(queryClient: QueryClient) {
     queryFn: fetchCategories,
   });
 }
+
+export { apiClient };
