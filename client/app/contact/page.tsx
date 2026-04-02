@@ -18,16 +18,16 @@ const INFO = [
   {
     icon: Mail,
     label: "Email",
-    value: "hello@aindex.ai",
-    href: "mailto:hello@aindex.ai",
+    value: "hello@AINavix.ai",
+    href: "mailto:hello@AINavix.ai",
   },
   { icon: MapPin, label: "Location", value: "Baku, Azerbaijan", href: null },
   { icon: Clock, label: "Response", value: "Within 24 hours", href: null },
 ];
 
 const SOCIAL = [
-  { icon: Camera, href: "https://github.com/aindex", label: "Instagram" },
-  { icon: Bird, href: "https://twitter.com/aindex", label: "Twitter" },
+  { icon: Camera, href: "https://github.com/AINavix", label: "Instagram" },
+  { icon: Bird, href: "https://twitter.com/AINavix", label: "Twitter" },
   { icon: Phone, href: "tel:+1234567890", label: "Phone" },
 ];
 

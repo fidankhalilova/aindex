@@ -7,7 +7,7 @@ import HowItWorks from "@/sections/Home/Howitworks";
 import CTASection from "@/sections/Home/CtaSection";
 
 export const metadata: Metadata = {
-  title: "AIndex — Discover & Compare AI Tools",
+  title: "AINavix — Discover & Compare AI Tools",
 };
 
 export default function HomePage() {

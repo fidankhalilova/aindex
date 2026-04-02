@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Eye, EyeOff, UserPlus } from "lucide-react";
-import { authApi } from "@/lib/api"; // ← We need this for register
+import { authService } from "@/services/authService";
 import { useAuth } from "@/context/AuthProvider";
 import toast from "react-hot-toast";
 
@@ -57,16 +57,15 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const response = await authApi.register({
+      const response = await authService.register({
         username: form.username.trim(),
         email: form.email.trim(),
         password: form.password,
       });
 
-      // Correct usage: pass jwt and user
       login(response.jwt, response.user);
 
-      toast.success(`Welcome to AIndex, ${response.user.username}!`);
+      toast.success(`Welcome to AINavix, ${response.user.username}!`);
       router.push("/");
     } catch (err: any) {
       toast.error(err?.response?.data?.error?.message || "Registration failed");
@@ -77,7 +76,7 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F9FF] flex">
-      {/* Left Panel - Decorative */}
+      {/* Left Panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-linear-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4] items-center justify-center p-16 relative overflow-hidden">
         <div className="relative z-10 text-center">
           <h2 className="text-5xl font-bold text-white leading-tight mb-6">
@@ -117,15 +116,116 @@ export default function RegisterPage() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Username, Email, Password, Confirm Password fields - same as before */}
-            {/* ... (I'll keep it short - copy the form fields from your original with handleChange) */}
+            <div>
+              <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+                Username
+              </label>
+              <input
+                type="text"
+                value={form.username}
+                onChange={(e) => handleChange("username", e.target.value)}
+                placeholder="yourname"
+                className={`w-full px-5 py-3.5 border rounded-2xl focus:outline-none transition-all ${
+                  errors.username
+                    ? "border-red-400"
+                    : "border-[#E8EAFF] focus:border-[#2E4BC6]"
+                }`}
+              />
+              {errors.username && (
+                <p className="text-red-500 text-sm mt-1">{errors.username}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => handleChange("email", e.target.value)}
+                placeholder="you@example.com"
+                className={`w-full px-5 py-3.5 border rounded-2xl focus:outline-none transition-all ${
+                  errors.email
+                    ? "border-red-400"
+                    : "border-[#E8EAFF] focus:border-[#2E4BC6]"
+                }`}
+              />
+              {errors.email && (
+                <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showPw ? "text" : "password"}
+                  value={form.password}
+                  onChange={(e) => handleChange("password", e.target.value)}
+                  placeholder="••••••••"
+                  className={`w-full px-5 py-3.5 border rounded-2xl pr-12 focus:outline-none transition-all ${
+                    errors.password
+                      ? "border-red-400"
+                      : "border-[#E8EAFF] focus:border-[#2E4BC6]"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(!showPw)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  {showPw ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <input
+                  type={showCp ? "text" : "password"}
+                  value={form.confirm}
+                  onChange={(e) => handleChange("confirm", e.target.value)}
+                  placeholder="••••••••"
+                  className={`w-full px-5 py-3.5 border rounded-2xl pr-12 focus:outline-none transition-all ${
+                    errors.confirm
+                      ? "border-red-400"
+                      : "border-[#E8EAFF] focus:border-[#2E4BC6]"
+                  }`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCp(!showCp)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"
+                >
+                  {showCp ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.confirm && (
+                <p className="text-red-500 text-sm mt-1">{errors.confirm}</p>
+              )}
+            </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 disabled:opacity-70"
+              className="w-full bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 hover:brightness-105 disabled:opacity-70"
             >
-              {loading ? "Creating account..." : "Create Account"}
+              {loading ? (
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white animate-spin rounded-full" />
+              ) : (
+                <>
+                  <UserPlus size={20} /> Create Account
+                </>
+              )}
             </button>
           </form>
         </div>

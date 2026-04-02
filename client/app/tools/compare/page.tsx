@@ -1,19 +1,27 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ExternalLink, ArrowLeft, Check, X } from "lucide-react";
-
-import { useToolsByIds, getStrapiMedia } from "@/lib/api";
+import {
+  Star,
+  ExternalLink,
+  ArrowLeft,
+  Check,
+  X,
+  Trophy,
+  Sparkles,
+} from "lucide-react";
+import { useToolsByIds } from "@/hooks/useTools";
+import { getStrapiMedia } from "@/lib/apiClient";
 import { Tool, Feature, Tag } from "@/types";
 
 const PRICING_COLORS: Record<string, string> = {
-  free: "bg-emerald-50 text-emerald-700",
-  freemium: "bg-blue-50 text-blue-700",
-  paid: "bg-amber-50 text-amber-700",
-  enterprise: "bg-purple-50 text-purple-700",
+  free: "bg-emerald-100 text-emerald-700",
+  freemium: "bg-blue-100 text-blue-700",
+  paid: "bg-amber-100 text-amber-700",
+  enterprise: "bg-purple-100 text-purple-700",
 };
 
 export default function ComparePage() {
@@ -30,146 +38,18 @@ export default function ComparePage() {
 
   const { data: tools = [], isLoading, error } = useToolsByIds(ids);
 
-  const getComparisonRows = (tools: Tool[]) => {
-    const rows = [
-      {
-        label: "Category",
-        render: (tool: Tool) => tool.categories?.[0]?.name || "—", // plural + flat
-      },
-      {
-        label: "Pricing",
-        render: (tool: Tool) => (
-          <span
-            className={`px-2.5 py-1 rounded-full text-xs font-semibold capitalize inline-block ${
-              PRICING_COLORS[tool.pricing?.toLowerCase() || ""] || ""
-            }`}
-          >
-            {tool.pricing || "—"}
-          </span>
-        ),
-      },
-      {
-        label: "Pricing Details",
-        render: (tool: Tool) => (
-          <div className="text-xs text-[#1B1464]/60">
-            {tool.pricingDetails || "—"}
-          </div>
-        ),
-      },
-      {
-        label: "Rating",
-        render: (tool: Tool) => (
-          <div className="flex flex-col items-center gap-1">
-            <div className="flex items-center gap-0.5">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Star
-                  key={i}
-                  size={14}
-                  className={
-                    i < Math.round(tool.averageRating || 0)
-                      ? "fill-amber-400 text-amber-400"
-                      : "fill-gray-200 text-gray-200"
-                  }
-                />
-              ))}
-            </div>
-            <span className="text-xs font-bold text-[#1B1464]">
-              {(tool.averageRating || 0).toFixed(1)} / 5
-            </span>
-          </div>
-        ),
-      },
-      {
-        label: "Reviews",
-        render: (tool: Tool) => (
-          <span className="text-sm font-medium text-[#1B1464]">
-            {tool.reviewsCount || 0}
-          </span>
-        ),
-      },
-      {
-        label: "Verified",
-        render: (tool: Tool) =>
-          tool.isVerified ? (
-            <div className="flex flex-col items-center gap-1">
-              <Check size={18} className="text-[#00C2CB]" />
-              <span className="text-xs text-[#00C2CB]">Verified</span>
-            </div>
-          ) : (
-            <X size={18} className="text-gray-300" />
-          ),
-      },
-      {
-        label: "Short Description",
-        render: (tool: Tool) => (
-          <div className="text-sm text-[#1B1464]/60 leading-relaxed">
-            {tool.shortDescription || "—"}
-          </div>
-        ),
-      },
-    ];
+  // In compare/page.tsx
+  const handlePickForMe = () => {
+    if (tools.length < 2) return;
+    const winner = [...tools].sort((a, b) => {
+      const ratingDiff = (b.averageRating || 0) - (a.averageRating || 0);
+      return ratingDiff !== 0
+        ? ratingDiff
+        : (b.viewsCount || 0) - (a.viewsCount || 0);
+    })[0];
 
-    // Key Features
-    const hasFeatures = tools.some((t) => t.features && t.features.length > 0);
-    if (hasFeatures) {
-      rows.push({
-        label: "Key Features",
-        render: (tool: Tool) => (
-          <div className="space-y-1.5">
-            {tool.features && tool.features.length > 0 ? (
-              tool.features.map((feature, idx) => {
-                const name =
-                  typeof feature === "string"
-                    ? feature
-                    : (feature as Feature).name;
-                return (
-                  <div key={idx} className="flex items-start gap-1.5 text-sm">
-                    <Check
-                      size={14}
-                      className="text-[#00C2CB] shrink-0 mt-0.5"
-                    />
-                    <span className="text-[#1B1464]/70">{name}</span>
-                  </div>
-                );
-              })
-            ) : (
-              <span className="text-[#1B1464]/40 text-sm">
-                No features listed
-              </span>
-            )}
-          </div>
-        ),
-      });
-    }
-
-    // Tags
-    const hasTags = tools.some((t) => t.tags && t.tags.length > 0);
-    if (hasTags) {
-      rows.push({
-        label: "Tags",
-        render: (tool: Tool) => (
-          <div className="flex flex-wrap gap-1.5">
-            {tool.tags && tool.tags.length > 0 ? (
-              tool.tags.map((tag, idx) => {
-                const name = typeof tag === "string" ? tag : (tag as Tag).name;
-                return (
-                  <span
-                    key={idx}
-                    className="text-xs px-2 py-0.5 bg-[#E8EAFF] text-[#2E4BC6] rounded-full"
-                  >
-                    {name}
-                  </span>
-                );
-              })
-            ) : (
-              <span className="text-[#1B1464]/40 text-sm">No tags</span>
-            )}
-          </div>
-        ),
-      });
-    }
-
-    return rows;
+    // Use slug instead of ID
+    router.push(`/tools/compare/winner?slug=${winner.slug}`);
   };
 
   if (isLoading) {
@@ -177,22 +57,24 @@ export default function ComparePage() {
       <div className="min-h-screen bg-[#F8F9FF] pt-20 flex items-center justify-center">
         <div className="text-center">
           <div className="w-10 h-10 rounded-full border-4 border-[#E8EAFF] border-t-[#2E4BC6] animate-spin mx-auto mb-4" />
-          <p className="text-[#1B1464]/50 text-sm">Loading comparison...</p>
+          <p className="text-[#1B1464]/60 text-sm">Loading comparison...</p>
         </div>
       </div>
     );
   }
 
-  if (error || ids.length === 0) {
+  if (error || ids.length === 0 || tools.length === 0) {
     return (
-      <div className="min-h-screen bg-[#F8F9FF] pt-20 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">Failed to load tools for comparison.</p>
+      <div className="min-h-screen bg-[#F8F9FF] pt-20 flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <p className="text-red-600 mb-4">
+            Failed to load tools for comparison.
+          </p>
           <button
             onClick={() => router.back()}
-            className="mt-4 text-[#2E4BC6] hover:underline"
+            className="text-[#2E4BC6] hover:underline"
           >
-            Go back
+            ← Go back
           </button>
         </div>
       </div>
@@ -200,55 +82,74 @@ export default function ComparePage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FF] pt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-1.5 text-sm text-[#1B1464]/50 hover:text-[#2E4BC6] transition-colors mb-6"
-        >
-          <ArrowLeft size={15} /> Back
-        </button>
+    <div className="min-h-screen bg-[#F8F9FF] pt-20 pb-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-10">
+          <div>
+            <button
+              onClick={() => router.back()}
+              className="flex items-center gap-1.5 text-sm text-[#1B1464]/60 hover:text-[#2E4BC6] mb-1"
+            >
+              <ArrowLeft size={16} /> Back
+            </button>
+            <h1 className="font-display font-bold text-4xl text-[#1B1464]">
+              Compare Tools
+            </h1>
+            <p className="text-[#1B1464]/60">
+              Side-by-side • {tools.length} tools
+            </p>
+          </div>
 
-        <h1 className="font-display font-bold text-[#1B1464] text-3xl mb-8">
-          Compare Tools
-        </h1>
+          {tools.length >= 2 && (
+            <button
+              onClick={handlePickForMe}
+              className="group flex items-center gap-3 bg-gradient-to-r from-[#2E4BC6] via-[#00C2CB] to-[#2E4BC6] text-white font-semibold px-8 py-3.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+            >
+              <Sparkles
+                className="group-hover:rotate-12 transition-transform"
+                size={20}
+              />
+              Pick for me!
+              <Trophy size={20} />
+            </button>
+          )}
+        </div>
 
         {tools.length < 2 ? (
-          <div className="text-center py-20 bg-white rounded-2xl border border-[#E8EAFF]">
-            <div className="text-5xl mb-4">🔍</div>
-            <p className="text-[#1B1464]/50 mb-4 text-lg">
-              Select at least 2 tools from the browse page to compare.
+          <div className="text-center py-20 bg-white rounded-3xl border border-[#E8EAFF]">
+            <p className="text-6xl mb-6">🔍</p>
+            <p className="text-xl text-[#1B1464]/60 mb-8">
+              Select at least 2 tools to compare
             </p>
             <Link
               href="/tools"
-              className="inline-flex bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-6 py-3 rounded-xl shadow-[0_0_16px_rgba(46,75,198,.3)] hover:shadow-[0_0_24px_rgba(0,194,203,.4)] transition-all"
+              className="inline-flex bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-8 py-3.5 rounded-2xl hover:shadow-xl transition-all"
             >
               Browse Tools
             </Link>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl border border-[#E8EAFF] shadow-[0_4px_24px_rgba(27,20,100,.07)] overflow-hidden">
-            <div className="overflow-x-auto">
-              <div
-                className="min-w-max divide-x divide-[#E8EAFF]"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `220px repeat(${tools.length}, minmax(280px, 1fr))`,
-                }}
-              >
-                {/* Header row */}
-                <div className="p-5 bg-[#F8F9FF] border-b border-[#E8EAFF] font-semibold text-[#1B1464]">
-                  Tool Details
-                </div>
-                {tools.map((tool) => {
-                  const logoUrl = getStrapiMedia(tool.logo?.url ?? null);
-
-                  return (
-                    <div
-                      key={tool.id}
-                      className="p-5 text-center border-b border-[#E8EAFF] bg-white"
-                    >
-                      <div className="w-20 h-20 rounded-xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF] mx-auto mb-3 flex items-center justify-center">
+          <div className="bg-white rounded-3xl border border-[#E8EAFF] shadow-sm overflow-hidden">
+            {/* Tool Header Row */}
+            <div
+              className="grid"
+              style={{
+                gridTemplateColumns: `240px repeat(${tools.length}, 1fr)`,
+              }}
+            >
+              <div className="p-8 border-b border-[#E8EAFF] font-medium text-[#1B1464]">
+                Tool
+              </div>
+              {tools.map((tool) => {
+                const logoUrl = getStrapiMedia(tool.logo?.url ?? null);
+                return (
+                  <div
+                    key={tool.id}
+                    className="p-8 border-b border-[#E8EAFF] text-center"
+                  >
+                    <div className="flex justify-center mb-4">
+                      <div className="w-20 h-20 rounded-2xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF] flex items-center justify-center">
                         {logoUrl ? (
                           <Image
                             src={logoUrl}
@@ -258,112 +159,157 @@ export default function ComparePage() {
                             className="object-contain p-2"
                           />
                         ) : (
-                          <span className="font-display font-bold text-[#2E4BC6] text-2xl">
+                          <span className="text-5xl font-display font-bold text-[#2E4BC6]">
                             {tool.name?.[0] || "?"}
                           </span>
                         )}
                       </div>
-
-                      <h3 className="font-display font-bold text-[#1B1464] text-lg mb-2">
-                        {tool.name}
-                      </h3>
-
-                      <div className="flex items-center justify-center gap-2 mb-3">
-                        <span
-                          className={`text-xs font-semibold px-2 py-1 rounded-full capitalize ${
-                            PRICING_COLORS[tool.pricing?.toLowerCase() || ""] ||
-                            ""
-                          }`}
-                        >
-                          {tool.pricing}
-                        </span>
-                        {tool.isVerified && (
-                          <span className="inline-flex items-center gap-1 text-[#00C2CB] text-xs">
-                            <Check size={12} /> Verified
-                          </span>
-                        )}
-                      </div>
-
-                      <a
-                        href={tool.website}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-sm text-[#2E4BC6] font-medium hover:underline"
-                      >
-                        Visit Website <ExternalLink size={14} />
-                      </a>
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Dynamic comparison rows */}
-              {getComparisonRows(tools).map(({ label, render }) => (
-                <div
-                  key={label}
-                  className="min-w-max divide-x divide-[#E8EAFF] border-t border-[#E8EAFF]"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: `220px repeat(${tools.length}, minmax(280px, 1fr))`,
-                  }}
-                >
-                  <div className="p-5 bg-[#F8F9FF] flex items-start">
-                    <span className="text-sm font-semibold text-[#1B1464]/80">
-                      {label}
-                    </span>
-                  </div>
-                  {tools.map((tool) => (
-                    <div
-                      key={tool.id}
-                      className="p-5 flex items-center justify-center text-center"
+                    <h3 className="font-semibold text-xl text-[#1B1464] mb-2">
+                      {tool.name}
+                    </h3>
+                    <a
+                      href={tool.website}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#2E4BC6] hover:text-[#00C2CB] text-sm inline-flex items-center gap-1"
                     >
-                      {render(tool)}
-                    </div>
-                  ))}
-                </div>
-              ))}
+                      Visit site <ExternalLink size={14} />
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
 
-              {/* Full Description */}
+            {/* Comparison Table */}
+            <div className="divide-y divide-[#E8EAFF]">
+              {/* Category */}
               <div
-                className="min-w-max divide-x divide-[#E8EAFF] border-t border-[#E8EAFF]"
+                className="grid"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: `220px repeat(${tools.length}, minmax(280px, 1fr))`,
+                  gridTemplateColumns: `240px repeat(${tools.length}, 1fr)`,
                 }}
               >
-                <div className="p-5 bg-[#F8F9FF] flex items-start">
-                  <span className="text-sm font-semibold text-[#1B1464]/80">
-                    Full Description
-                  </span>
+                <div className="p-6 pl-8 font-medium text-[#1B1464]">
+                  Category
                 </div>
                 {tools.map((tool) => (
-                  <div
-                    key={tool.id}
-                    className="p-5 text-sm text-[#1B1464]/60 leading-relaxed"
-                  >
-                    {tool.description?.length > 300
-                      ? `${tool.description.substring(0, 300)}...`
-                      : tool.description || "—"}
+                  <div key={tool.id} className="p-6 text-[#1B1464]/80">
+                    {tool.categories?.[0]?.name || "—"}
                   </div>
                 ))}
               </div>
 
-              {/* Action buttons */}
+              {/* Pricing */}
               <div
-                className="min-w-max divide-x divide-[#E8EAFF] border-t border-[#E8EAFF]"
+                className="grid"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: `220px repeat(${tools.length}, minmax(280px, 1fr))`,
+                  gridTemplateColumns: `240px repeat(${tools.length}, 1fr)`,
                 }}
               >
-                <div className="p-5 bg-[#F8F9FF]" />
+                <div className="p-6 pl-8 font-medium text-[#1B1464]">
+                  Pricing
+                </div>
                 {tools.map((tool) => (
-                  <div key={tool.id} className="p-5 text-center">
+                  <div key={tool.id} className="p-6">
+                    <span
+                      className={`px-4 py-1 rounded-full text-xs font-semibold capitalize ${
+                        PRICING_COLORS[tool.pricing?.toLowerCase() || ""] ||
+                        "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {tool.pricing || "—"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Rating & Reviews */}
+              <div
+                className="grid"
+                style={{
+                  gridTemplateColumns: `240px repeat(${tools.length}, 1fr)`,
+                }}
+              >
+                <div className="p-6 pl-8 font-medium text-[#1B1464]">
+                  Rating
+                </div>
+                {tools.map((tool) => (
+                  <div
+                    key={tool.id}
+                    className="p-6 flex flex-col items-center gap-1"
+                  >
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star
+                          key={i}
+                          size={18}
+                          className={
+                            i < Math.round(tool.averageRating || 0)
+                              ? "fill-amber-400 text-amber-400"
+                              : "fill-gray-200 text-gray-200"
+                          }
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm font-medium mt-1">
+                      {(tool.averageRating || 0).toFixed(1)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div
+                className="grid"
+                style={{
+                  gridTemplateColumns: `240px repeat(${tools.length}, 1fr)`,
+                }}
+              >
+                <div className="p-6 pl-8 font-medium text-[#1B1464]">
+                  Reviews
+                </div>
+                {tools.map((tool) => (
+                  <div key={tool.id} className="p-6 text-center font-medium">
+                    {tool.reviewsCount || 0}
+                  </div>
+                ))}
+              </div>
+
+              {/* Short Description */}
+              <div
+                className="grid"
+                style={{
+                  gridTemplateColumns: `240px repeat(${tools.length}, 1fr)`,
+                }}
+              >
+                <div className="p-6 pl-8 font-medium text-[#1B1464]">
+                  Short Description
+                </div>
+                {tools.map((tool) => (
+                  <div
+                    key={tool.id}
+                    className="p-6 text-sm text-[#1B1464]/70 leading-relaxed"
+                  >
+                    {tool.shortDescription || "—"}
+                  </div>
+                ))}
+              </div>
+
+              {/* Action Row */}
+              <div
+                className="grid"
+                style={{
+                  gridTemplateColumns: `240px repeat(${tools.length}, 1fr)`,
+                }}
+              >
+                <div className="p-6 pl-8" />
+                {tools.map((tool) => (
+                  <div key={tool.id} className="p-6 flex justify-center">
                     <Link
                       href={`/tools/${tool.slug}`}
-                      className="inline-block w-full bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white text-sm font-bold px-4 py-2.5 rounded-xl shadow-[0_0_12px_rgba(46,75,198,.25)] hover:shadow-[0_0_20px_rgba(0,194,203,.4)] hover:-translate-y-px transition-all duration-200"
+                      className="bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-10 py-3 rounded-2xl hover:shadow-md transition-all text-sm"
                     >
-                      View Full Details
+                      View Details
                     </Link>
                   </div>
                 ))}

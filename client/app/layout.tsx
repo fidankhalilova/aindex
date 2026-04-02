@@ -6,6 +6,7 @@ import Navbar from "@/layout/RootLayout/Header";
 import Footer from "@/layout/RootLayout/Footer";
 import { AuthProvider } from "@/context/AuthProvider";
 import UseQueryProvider from "@/providers/UseQuery";
+import ChatWidget from "@/components/ChatWidget";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -21,22 +22,54 @@ const syne = Syne({
 
 export const metadata: Metadata = {
   title: {
-    default: "AIndex — Discover & Compare AI Tools",
-    template: "%s | AIndex",
+    default: "AINavix — Discover & Compare AI Tools",
+    template: "%s | AINavix",
   },
   description:
-    "AIndex is your centralized platform for discovering, exploring, and comparing AI tools. Find the perfect tool for your specific needs.",
+    "AINavix is your centralized platform for discovering, exploring, and comparing AI tools. Find the perfect tool for your specific needs.",
   keywords: [
     "AI tools",
     "artificial intelligence",
     "tool comparison",
     "AI directory",
+    "AI software",
   ],
+  authors: [{ name: "AINavix Team" }],
+
+  // ✅ Proper Favicon / Site Icon Setup
+  icons: {
+    icon: [
+      { url: "@/assets/ainavix_logo.png", sizes: "32x32", type: "image/png" },
+      { url: "@/assets/ainavix_logo.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: [
+      { url: "@/assets/ainavix_logo.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "@/assets/ainavix_logo.png",
+  },
+
+  // Open Graph (Social Sharing)
   openGraph: {
     type: "website",
-    siteName: "AIndex",
-    title: "AIndex — Discover & Compare AI Tools",
+    siteName: "AINavix",
+    title: "AINavix — Discover & Compare AI Tools",
     description: "Find and compare the best AI tools for your needs.",
+    images: [
+      {
+        url: "@/assets/ainavix_logo.png",
+        width: 1200,
+        height: 630,
+        alt: "AINavix Logo",
+      },
+    ],
+  },
+
+  // Twitter Card
+  twitter: {
+    card: "summary_large_image",
+    title: "AINavix — Discover & Compare AI Tools",
+    description: "Find and compare the best AI tools for your needs.",
+    images: ["@/assets/ainavix_logo.png"],
   },
 };
 

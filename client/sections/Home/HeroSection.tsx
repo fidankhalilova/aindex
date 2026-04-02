@@ -24,7 +24,7 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative min-h-screen pt-10 flex items-center justify-center overflow-hidden bg-linear-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4]">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-linear-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4]">
       {/* Decorative network/wave lines - matching presentation */}
       <svg
         className="absolute inset-0 w-full h-full opacity-10 pointer-events-none"
@@ -129,8 +129,9 @@ export default function HeroSection() {
           className="text-white/70 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up"
           style={{ animationDelay: ".1s" }}
         >
-          Stop wasting hours searching. AIndex centralizes thousands of AI tools
-          so you can discover, compare, and choose the right one — in seconds.
+          Stop wasting hours searching. AINavix centralizes thousands of AI
+          tools so you can discover, compare, and choose the right one — in
+          seconds.
         </p>
 
         {/* Search bar */}

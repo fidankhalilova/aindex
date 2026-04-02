@@ -3,9 +3,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Star, ExternalLink, GitCompare, Check } from "lucide-react";
-import { getStrapiMedia } from "@/lib/api";
+import { Star, ExternalLink, GitCompare, Check, Heart } from "lucide-react";
+import { getStrapiMedia } from "@/lib/apiClient";
 import { Tool } from "@/types";
+import { useFavorites } from "@/hooks/useFavorites"; // ← Import the hook
+import toast from "react-hot-toast";
 
 const PRICING_COLORS: Record<string, string> = {
   free: "bg-emerald-50 text-emerald-700 border border-emerald-200",
@@ -45,13 +47,48 @@ export default function ToolCard({
   const rating = averageRating || 0;
   const pricingKey = pricing?.toLowerCase() ?? "free";
 
+  // Favorites functionality
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const isFavorited = isFavorite(id);
+
+  const handleToggleFavorite = () => {
+    const wasAdded = toggleFavorite(tool);
+
+    if (wasAdded) {
+      toast.success(`Added ${name} to favorites ❤️`, {
+        position: "bottom-right",
+      });
+    } else {
+      toast.success(`Removed ${name} from favorites`, {
+        position: "bottom-right",
+      });
+    }
+  };
+
   return (
     <div
       className={`group bg-white rounded-3xl shadow-[0_4px_20px_rgba(27,20,100,0.06)] 
                   hover:shadow-[0_10px_32px_rgba(27,20,100,0.10)] hover:-translate-y-0.5 
                   transition-all duration-300 overflow-hidden flex flex-col h-full 
-                  min-w-70 w-full border border-transparent`}
+                  min-w-70 w-full border border-transparent relative`}
     >
+      {/* Favorite Button - Top Right */}
+      <button
+        onClick={handleToggleFavorite}
+        className="absolute bottom-20 right-4 z-10 p-2 rounded-full bg-white/90 hover:bg-white shadow-sm 
+                   transition-all hover:scale-110 active:scale-95"
+        aria-label={isFavorited ? "Remove from favorites" : "Add to favorites"}
+      >
+        <Heart
+          size={20}
+          className={`transition-all duration-200 ${
+            isFavorited
+              ? "fill-red-500 text-red-500"
+              : "text-gray-400 group-hover:text-gray-600"
+          }`}
+        />
+      </button>
+
       {/* Main Content */}
       <div className="p-5 flex-1">
         <div className="flex gap-4 mb-4">
@@ -72,7 +109,7 @@ export default function ToolCard({
             )}
           </div>
 
-          {/* Title + Pricing (Side by Side) */}
+          {/* Title + Pricing */}
           <div className="flex-1 min-w-0 flex flex-col">
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -86,7 +123,7 @@ export default function ToolCard({
                 )}
               </div>
 
-              {/* Pricing Badge - Now next to title with justify-between */}
+              {/* Pricing Badge */}
               <span
                 className={`text-xs font-medium px-3 py-1 rounded-full capitalize whitespace-nowrap shrink-0 ${
                   PRICING_COLORS[pricingKey] ||

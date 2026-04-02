@@ -1,8 +1,10 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Star, ArrowRight, ExternalLink, Zap } from "lucide-react";
-import { useFeaturedTools, getStrapiMedia } from "@/lib/api";
+import { useFeaturedTools } from "@/hooks/useTools";
+import { getStrapiMedia } from "@/lib/apiClient";
 import { Tool } from "@/types";
 
 const PRICING_COLORS: Record<string, string> = {
@@ -21,16 +23,14 @@ function ToolCard({ tool }: { tool: Tool }) {
     pricing,
     averageRating,
     reviewsCount,
-    categories, // ← plural
+    categories,
     isVerified,
     website,
   } = tool;
 
   const logoUrl = logo?.url ? getStrapiMedia(logo.url) : null;
-  // First category in the array
   const catName = categories?.[0]?.name;
   const rating = averageRating || 0;
-  // Normalise pricing to lowercase for colour lookup
   const pricingKey = pricing?.toLowerCase() ?? "free";
 
   return (

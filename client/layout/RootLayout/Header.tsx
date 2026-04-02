@@ -5,9 +5,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, ChevronDown, LogOut, User, Plus } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
-import { getStrapiMedia } from "@/lib/api";
+import { getStrapiMedia } from "@/lib/apiClient";
 import Image from "next/image";
 import toast from "react-hot-toast";
+
+// Static import for the logo (Best practice in Next.js)
+import AinavixLogo from "@/assets/ainavix_logo.png";
 
 const NAV = [
   { href: "/", label: "Home" },
@@ -44,7 +47,7 @@ export default function Navbar() {
     router.push("/");
   };
 
-  // Fixed avatar URL handling (compatible with your current Strapi v5 User type)
+  // Avatar URL
   const avatarUrl = user?.avatar?.url ? getStrapiMedia(user.avatar.url) : null;
 
   // Close user menu when clicking outside
@@ -73,30 +76,22 @@ export default function Navbar() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-md group-hover:scale-105 transition-all duration-300">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="3" fill="#2E4BC6" />
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-                stroke="#2E4BC6"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M12 6v2M12 16v2M6 12H4M20 12h-2"
-                stroke="#2E4BC6"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
+          <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-md group-hover:scale-105 transition-all duration-300 overflow-hidden">
+            <Image
+              src={AinavixLogo} // ← Fixed: Static import
+              alt="AINavix Logo"
+              width={36}
+              height={36}
+              priority
+              className="object-contain"
+            />
           </div>
           <span
             className={`font-display font-bold text-xl transition-colors ${
               scrolled ? "text-[#1B1464]" : "text-white"
             }`}
           >
-            AIndex
+            AINavix
           </span>
         </Link>
 

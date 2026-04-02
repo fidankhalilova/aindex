@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
-import { authApi } from "@/lib/api";
+import { authService } from "@/services/authService";
 import toast from "react-hot-toast";
 
 export default function LoginPage() {
@@ -37,12 +37,11 @@ export default function LoginPage() {
     setErrors({});
 
     try {
-      const response = await authApi.login({
+      const response = await authService.login({
         identifier: identifier.trim(),
         password,
       });
 
-      // This is the critical line - now properly saved in localStorage
       login(response.jwt, response.user);
 
       toast.success(`Welcome back, ${response.user.username}!`);
@@ -86,7 +85,7 @@ export default function LoginPage() {
             <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#2E4BC6] to-[#00C2CB] flex items-center justify-center">
               <span className="text-white font-bold text-2xl">A</span>
             </div>
-            <span className="font-bold text-2xl text-[#1B1464]">AIndex</span>
+            <span className="font-bold text-2xl text-[#1B1464]">AINavix</span>
           </Link>
 
           <h1 className="text-4xl font-bold text-[#1B1464] mb-2">Sign In</h1>

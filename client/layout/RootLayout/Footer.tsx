@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { Camera, Bird, Phone, Mail } from "lucide-react";
+import Image from "next/image";
+
+// Static import for the logo (recommended way)
+import AinavixLogo from "@/assets/ainavix_logo.png";
 
 const LINKS = {
   Platform: [
@@ -25,7 +29,7 @@ const SOCIAL = [
   { icon: Camera, href: "#", label: "Instagram" },
   { icon: Bird, href: "#", label: "Twitter" },
   { icon: Phone, href: "#", label: "Phone" },
-  { icon: Mail, href: "mailto:hello@aindex.ai", label: "Email" },
+  { icon: Mail, href: "mailto:hello@AINavix.ai", label: "Email" },
 ];
 
 export default function Footer() {
@@ -47,61 +51,30 @@ export default function Footer() {
           />
         </svg>
       </div>
-      {/* Wave decoration */}
-      <svg
-        className="absolute inset-0 w-full h-full opacity-[.05] pointer-events-none"
-        viewBox="0 0 1440 400"
-        preserveAspectRatio="none"
-      >
-        <path
-          d="M0 200C240 120 480 280 720 200C960 120 1200 280 1440 200"
-          stroke="white"
-          strokeWidth="2"
-          fill="none"
-        />
-        <path
-          d="M0 250C240 170 480 330 720 250C960 170 1200 330 1440 250"
-          stroke="white"
-          strokeWidth="1.5"
-          fill="none"
-        />
-        <path
-          d="M0 150C240 70 480 230 720 150C960 70 1200 230 1440 150"
-          stroke="white"
-          strokeWidth="1"
-          fill="none"
-        />
-      </svg>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-14">
           {/* Brand */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-[#4A6DE0] to-[#00C2CB] flex items-center justify-center shadow-[0_0_28px_rgba(0,194,203,.4)]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" fill="white" />
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="9"
-                    stroke="white"
-                    strokeWidth="1.5"
-                  />
-                  <path
-                    d="M12 6v2M12 16v2M6 12H4M20 12h-2"
-                    stroke="white"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                  />
-                </svg>
+              <div className="w-9 h-9 rounded-xl bg-linear-to-br from-[#4A6DE0] to-[#00C2CB] flex items-center justify-center shadow-[0_0_28px_rgba(0,194,203,.4)] overflow-hidden">
+                <Image
+                  src={AinavixLogo} // ← Fixed: Static import
+                  alt="AINavix Logo"
+                  width={36}
+                  height={36}
+                  priority
+                  className="object-contain"
+                />
               </div>
-              <span className="font-display font-bold text-xl">AIndex</span>
+              <span className="font-display font-bold text-xl">AINavix</span>
             </div>
+
             <p className="text-white/55 text-sm leading-relaxed mb-6 max-w-xs">
               Your centralized platform for discovering, exploring, and
               comparing AI tools. Find the perfect tool for any task.
             </p>
+
             <div className="flex items-center gap-2.5">
               {SOCIAL.map(({ icon: Icon, href, label }) => (
                 <a
@@ -140,8 +113,8 @@ export default function Footer() {
 
         <div className="border-t border-white/10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-white/35 text-sm">
-            © {new Date().getFullYear()} AIndex — Built by Nizami Hajiyev, Murad
-            Safarli, Fidan Khalilova, Ismayil Aliyev &amp; Ali Ismayilov.
+            © {new Date().getFullYear()} AINavix — Built by Nizami Hajiyev,
+            Murad Safarli, Fidan Khalilova, Ismayil Aliyev &amp; Ali Ismayilov.
           </p>
           <div className="flex items-center gap-6">
             <Link

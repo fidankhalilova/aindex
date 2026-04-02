@@ -126,7 +126,7 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className="text-white/65 text-lg max-w-2xl mx-auto leading-relaxed">
-            AIndex was born from a simple frustration: thousands of AI tools
+            AINavix was born from a simple frustration: thousands of AI tools
             exist, but finding the right one for your task takes way too long.
             We built the solution.
           </p>
@@ -326,7 +326,7 @@ export default function AboutPage() {
               The Team
             </span>
             <h2 className="font-display font-bold text-[#1B1464] text-3xl">
-              People Behind AIndex
+              People Behind AINavix
             </h2>
           </div>
           <div className="flex flex-wrap justify-center gap-5">
@@ -372,8 +372,8 @@ export default function AboutPage() {
                 Ready to Discover Better AI Tools?
               </h2>
               <p className="text-white/60 mb-8">
-                Join thousands of users who already use AIndex to find, compare,
-                and review AI tools.
+                Join thousands of users who already use AINavix to find,
+                compare, and review AI tools.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link

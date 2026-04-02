@@ -4,8 +4,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Send, Lock } from "lucide-react";
-import { useCategories, useFeatures, useTags, useSubmitTool } from "@/lib/api";
+import { ArrowLeft, Send, Plus } from "lucide-react";
+import { useCategories } from "@/hooks/useCategories";
+import { useFeatures } from "@/hooks/useFeatures";
+import { useTags } from "@/hooks/useTags";
+import { useSubmitTool } from "@/hooks/useTools";
+import {
+  useCreateCategory,
+  useCreateFeature,
+  useCreateTag,
+} from "@/hooks/useCreateEntities";
 import { useAuth } from "@/context/AuthProvider";
 import toast from "react-hot-toast";
 
@@ -16,21 +24,30 @@ const PRICING_OPTS = [
   { value: "Enterprise", label: "Enterprise" },
 ];
 
-// Simple slug generator
-const generateSlug = (name: string): string => {
-  return name
+const generateSlug = (name: string): string =>
+  name
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9\s-]/g, "") // remove special chars
-    .replace(/\s+/g, "-") // replace spaces with hyphens
-    .replace(/-+/g, "-") // remove multiple hyphens
-    .replace(/^-|-$/g, ""); // remove leading/trailing hyphens
-};
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
+// Parse textarea lines → unique, non-empty, lowercased names
+const parseLines = (text: string): string[] =>
+  text
+    .split("\n")
+    .map((l) => l.trim().toLowerCase())
+    .filter(Boolean)
+    .filter((v, i, arr) => arr.indexOf(v) === i);
 
 export default function SubmitToolPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user } = useAuth();
   const submitTool = useSubmitTool();
+  const createCategory = useCreateCategory();
+  const createFeature = useCreateFeature();
+  const createTag = useCreateTag();
 
   const { data: categoriesData } = useCategories();
   const { data: featuresData = [] } = useFeatures();
@@ -43,40 +60,39 @@ export default function SubmitToolPage() {
     website: "",
     pricing: "Free" as const,
     pricingDetails: "",
+    // Category: either pick existing id or type a new name
     categoryId: "",
-    selectedFeatureIds: [] as number[],
-    selectedTagIds: [] as number[],
+    newCategoryName: "",
+    // Features & tags: textarea of names (one per line)
+    featuresText: "",
+    tagsText: "",
   });
 
   const [submitting, setSubmitting] = useState(false);
 
-  const toggleFeature = (id: number) => {
-    setForm((prev) => ({
-      ...prev,
-      selectedFeatureIds: prev.selectedFeatureIds.includes(id)
-        ? prev.selectedFeatureIds.filter((fid) => fid !== id)
-        : [...prev.selectedFeatureIds, id],
-    }));
-  };
-
-  const toggleTag = (id: number) => {
-    setForm((prev) => ({
-      ...prev,
-      selectedTagIds: prev.selectedTagIds.includes(id)
-        ? prev.selectedTagIds.filter((tid) => tid !== id)
-        : [...prev.selectedTagIds, id],
-    }));
-  };
+  // ── Helper: resolve names → ids, creating missing ones ──────────
+  async function resolveNames<T extends { id: number; name: string }>(
+    inputNames: string[],
+    existing: T[],
+    createFn: (name: string) => Promise<{ id: number; name: string }>,
+  ): Promise<number[]> {
+    const ids: number[] = [];
+    for (const name of inputNames) {
+      const found = existing.find((e) => e.name.toLowerCase() === name);
+      if (found) {
+        ids.push(found.id);
+      } else {
+        const created = await createFn(name);
+        ids.push(created.id);
+      }
+    }
+    return ids;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !form.name ||
-      !form.shortDescription ||
-      !form.website ||
-      !form.categoryId
-    ) {
+    if (!form.name || !form.shortDescription || !form.website) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -85,39 +101,62 @@ export default function SubmitToolPage() {
       return;
     }
 
-    const categoryId = Number(form.categoryId);
-    if (isNaN(categoryId) || categoryId <= 0) {
-      toast.error("Please select a valid category");
+    const isNewCategory = form.categoryId === "__new__";
+    if (!form.categoryId || (isNewCategory && !form.newCategoryName.trim())) {
+      toast.error("Please select or enter a category");
       return;
     }
 
     const slug = generateSlug(form.name);
-
     if (!slug) {
-      toast.error("Tool name is invalid. Please enter a valid name.");
+      toast.error("Tool name is invalid.");
       return;
     }
 
     setSubmitting(true);
 
     try {
+      // 1. Resolve category
+      let categoryId: number;
+      if (isNewCategory) {
+        const newCat = await createCategory.mutateAsync(
+          form.newCategoryName.trim(),
+        );
+        categoryId = newCat.id;
+      } else {
+        categoryId = Number(form.categoryId);
+      }
+
+      // 2. Resolve features (create missing ones)
+      const featureNames = parseLines(form.featuresText);
+      const featureIds = await resolveNames(
+        featureNames,
+        featuresData,
+        (name) => createFeature.mutateAsync(name),
+      );
+
+      // 3. Resolve tags (create missing ones)
+      const tagNames = parseLines(form.tagsText);
+      const tagIds = await resolveNames(tagNames, tagsData, (name) =>
+        createTag.mutateAsync(name),
+      );
+
+      // 4. Submit tool
       await submitTool.mutateAsync({
         name: form.name.trim(),
-        slug, // ← Added this
+        slug,
         shortDescription: form.shortDescription.trim(),
-        description: form.description.trim(),
+        description: form.description.trim() || "", // ← ensure empty string, never null
         website: form.website.trim(),
         pricing: form.pricing,
-        pricingDetails: form.pricingDetails.trim(),
-
+        pricingDetails: form.pricingDetails.trim() || "",
         categories: [categoryId],
-        features: form.selectedFeatureIds,
-        tags: form.selectedTagIds,
-
+        features: featureIds,
+        tags: tagIds,
         submittedBy: user.id,
       });
 
-      toast.success("Tool submitted successfully! Our team will review it.");
+      toast.success("Tool submitted! Our team will review it.");
       router.push("/profile");
     } catch (err: any) {
       console.error(err?.response?.data || err);
@@ -129,7 +168,9 @@ export default function SubmitToolPage() {
     }
   };
 
-  // ... rest of your component (loading, auth check, form JSX) remains the same ...
+  const inputCls =
+    "w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6] text-sm";
+  const labelCls = "block text-sm font-medium text-[#1B1464]/70 mb-2";
 
   return (
     <div className="min-h-screen bg-[#F8F9FF] pt-20 pb-12">
@@ -151,10 +192,10 @@ export default function SubmitToolPage() {
 
         <div className="bg-white rounded-3xl shadow-sm border border-[#E8EAFF] p-8">
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Name & Website */}
+            {/* Name + Website */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+                <label className={labelCls}>
                   Tool Name <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -163,12 +204,12 @@ export default function SubmitToolPage() {
                     setForm((p) => ({ ...p, name: e.target.value }))
                   }
                   placeholder="e.g. Claude 3.5 Sonnet"
-                  className="w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6]"
+                  className={inputCls}
                   required
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+                <label className={labelCls}>
                   Website URL <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -177,14 +218,15 @@ export default function SubmitToolPage() {
                     setForm((p) => ({ ...p, website: e.target.value }))
                   }
                   placeholder="https://example.com"
-                  className="w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6]"
+                  className={inputCls}
                   required
                 />
               </div>
             </div>
 
+            {/* Short Description */}
             <div>
-              <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+              <label className={labelCls}>
                 Short Description <span className="text-red-500">*</span>
               </label>
               <input
@@ -194,15 +236,14 @@ export default function SubmitToolPage() {
                 }
                 maxLength={160}
                 placeholder="One sentence that describes the tool"
-                className="w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6]"
+                className={inputCls}
                 required
               />
             </div>
 
+            {/* Full Description */}
             <div>
-              <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
-                Full Description
-              </label>
+              <label className={labelCls}>Full Description</label>
               <textarea
                 value={form.description}
                 onChange={(e) =>
@@ -210,22 +251,26 @@ export default function SubmitToolPage() {
                 }
                 rows={5}
                 placeholder="Explain what the tool does..."
-                className="w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6] resize-y"
+                className={`${inputCls} resize-y`}
               />
             </div>
 
             {/* Category + Pricing */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
+                <label className={labelCls}>
                   Category <span className="text-red-500">*</span>
                 </label>
                 <select
                   value={form.categoryId}
                   onChange={(e) =>
-                    setForm((p) => ({ ...p, categoryId: e.target.value }))
+                    setForm((p) => ({
+                      ...p,
+                      categoryId: e.target.value,
+                      newCategoryName: "",
+                    }))
                   }
-                  className="w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6]"
+                  className={inputCls}
                   required
                 >
                   <option value="">Select a category</option>
@@ -234,19 +279,38 @@ export default function SubmitToolPage() {
                       {cat.name}
                     </option>
                   ))}
+                  <option value="__new__">➕ Create new category…</option>
                 </select>
+
+                {/* New category name input */}
+                {form.categoryId === "__new__" && (
+                  <div className="mt-3 flex items-center gap-2">
+                    <Plus size={16} className="text-[#2E4BC6] shrink-0" />
+                    <input
+                      value={form.newCategoryName}
+                      onChange={(e) =>
+                        setForm((p) => ({
+                          ...p,
+                          newCategoryName: e.target.value,
+                        }))
+                      }
+                      placeholder="New category name"
+                      className={inputCls}
+                      autoFocus
+                      required
+                    />
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
-                  Pricing
-                </label>
+                <label className={labelCls}>Pricing</label>
                 <select
                   value={form.pricing}
                   onChange={(e) =>
                     setForm((p) => ({ ...p, pricing: e.target.value as any }))
                   }
-                  className="w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6]"
+                  className={inputCls}
                 >
                   {PRICING_OPTS.map((p) => (
                     <option key={p.value} value={p.value}>
@@ -257,62 +321,99 @@ export default function SubmitToolPage() {
               </div>
             </div>
 
+            {/* Pricing Details */}
             <div>
-              <label className="block text-sm font-medium text-[#1B1464]/70 mb-2">
-                Pricing Details
-              </label>
+              <label className={labelCls}>Pricing Details</label>
               <input
                 value={form.pricingDetails}
                 onChange={(e) =>
                   setForm((p) => ({ ...p, pricingDetails: e.target.value }))
                 }
                 placeholder="e.g. Free tier available • Pro at $19/month"
-                className="w-full px-5 py-3.5 bg-[#F8F9FF] border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6]"
+                className={inputCls}
               />
             </div>
 
             {/* Features */}
             <div>
-              <label className="block text-sm font-medium text-[#1B1464]/70 mb-3">
-                Key Features
-              </label>
-              <div className="max-h-64 overflow-y-auto p-4 border border-[#E8EAFF] rounded-2xl bg-[#F8F9FF] grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {featuresData.map((f) => (
-                  <label
-                    key={f.id}
-                    className="flex items-center gap-2 p-2 hover:bg-white rounded-xl cursor-pointer text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.selectedFeatureIds.includes(f.id)}
-                      onChange={() => toggleFeature(f.id)}
-                    />
-                    {f.name}
-                  </label>
-                ))}
-              </div>
+              <label className={labelCls}>Key Features</label>
+              <p className="text-xs text-[#1B1464]/40 mb-2">
+                One feature per line. Existing ones will be matched
+                (case-insensitive), new ones will be created.
+              </p>
+              <textarea
+                value={form.featuresText}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, featuresText: e.target.value }))
+                }
+                rows={5}
+                placeholder={
+                  "API Access\nBrowser Extension\nTeam Collaboration\nCustom Workflows"
+                }
+                className={`${inputCls} resize-y font-mono`}
+              />
+              {/* Preview */}
+              {parseLines(form.featuresText).length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {parseLines(form.featuresText).map((f) => {
+                    const exists = featuresData.some(
+                      (e) => e.name.toLowerCase() === f,
+                    );
+                    return (
+                      <span
+                        key={f}
+                        className={`text-xs px-3 py-1 rounded-full border ${
+                          exists
+                            ? "bg-green-50 border-green-200 text-green-700"
+                            : "bg-blue-50 border-blue-200 text-blue-700"
+                        }`}
+                      >
+                        {exists ? "✓" : "+"} {f}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-[#1B1464]/70 mb-3">
-                Tags
-              </label>
-              <div className="max-h-64 overflow-y-auto p-4 border border-[#E8EAFF] rounded-2xl bg-[#F8F9FF] grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {tagsData.map((t) => (
-                  <label
-                    key={t.id}
-                    className="flex items-center gap-2 p-2 hover:bg-white rounded-xl cursor-pointer text-sm"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={form.selectedTagIds.includes(t.id)}
-                      onChange={() => toggleTag(t.id)}
-                    />
-                    {t.name}
-                  </label>
-                ))}
-              </div>
+              <label className={labelCls}>Tags</label>
+              <p className="text-xs text-[#1B1464]/40 mb-2">
+                One tag per line. Existing ones will be matched
+                (case-insensitive), new ones will be created.
+              </p>
+              <textarea
+                value={form.tagsText}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, tagsText: e.target.value }))
+                }
+                rows={5}
+                placeholder={"productivity\nnlp\nopen-source\nno-code"}
+                className={`${inputCls} resize-y font-mono`}
+              />
+              {/* Preview */}
+              {parseLines(form.tagsText).length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {parseLines(form.tagsText).map((t) => {
+                    const exists = tagsData.some(
+                      (e) => e.name.toLowerCase() === t,
+                    );
+                    return (
+                      <span
+                        key={t}
+                        className={`text-xs px-3 py-1 rounded-full border ${
+                          exists
+                            ? "bg-green-50 border-green-200 text-green-700"
+                            : "bg-blue-50 border-blue-200 text-blue-700"
+                        }`}
+                      >
+                        {exists ? "✓" : "+"} {t}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <button
@@ -321,9 +422,7 @@ export default function SubmitToolPage() {
               className="w-full bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold py-4 rounded-2xl flex items-center justify-center gap-3 hover:brightness-105 transition-all disabled:opacity-70"
             >
               <Send size={20} />
-              {submitting
-                ? "Submitting for Review..."
-                : "Submit Tool for Review"}
+              {submitting ? "Submitting…" : "Submit Tool for Review"}
             </button>
           </form>
         </div>

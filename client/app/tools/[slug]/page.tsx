@@ -5,12 +5,10 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Star, ExternalLink, ArrowLeft, Send, Check } from "lucide-react";
-import {
-  useTool,
-  useReviewsByTool,
-  useCreateReview,
-  getStrapiMedia,
-} from "@/lib/api";
+import { useTool } from "@/hooks/useTools";
+import { useReviewsByTool, useCreateReview } from "@/hooks/useReviews";
+import { getStrapiMedia } from "@/lib/apiClient";
+import { incrementToolViews } from "@/services/toolsService";
 import { Tool, Review, Feature, Tag } from "@/types";
 import { useAuth } from "@/context/AuthProvider";
 import toast from "react-hot-toast";
@@ -83,12 +81,9 @@ export default function ToolDetailPage() {
 
   const createReviewMutation = useCreateReview();
 
-  // Increment views
   useEffect(() => {
     if (tool?.id) {
-      import("@/lib/api").then(({ incrementToolViews }) => {
-        incrementToolViews(tool.id).catch(() => {});
-      });
+      incrementToolViews(tool.id).catch(() => {});
     }
   }, [tool?.id]);
 
@@ -110,7 +105,6 @@ export default function ToolDetailPage() {
       });
 
       toast.success("Review submitted successfully!");
-
       setRating(0);
       setTitle("");
       setContent("");
@@ -154,7 +148,6 @@ export default function ToolDetailPage() {
   return (
     <div className="min-h-screen bg-[#F8F9FF] pt-20 pb-16">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
         <button
           onClick={() => router.back()}
           className="flex items-center gap-2 text-[#1B1464]/60 hover:text-[#2E4BC6] mb-8 transition-colors"
@@ -164,11 +157,8 @@ export default function ToolDetailPage() {
         </button>
 
         <div className="flex flex-col lg:flex-row gap-10 lg:gap-12">
-          {/* Main Content */}
           <div className="flex-1 space-y-10">
-            {/* Header */}
             <div className="flex flex-col sm:flex-row gap-6 sm:items-start">
-              {/* Logo */}
               <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden border border-[#E8EAFF] bg-white shrink-0 flex items-center justify-center">
                 {logoUrl ? (
                   <Image
@@ -185,7 +175,6 @@ export default function ToolDetailPage() {
                 )}
               </div>
 
-              {/* Title & Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
                   <h1 className="font-semibold text-3xl sm:text-4xl text-[#1B1464] tracking-tight">
@@ -202,7 +191,6 @@ export default function ToolDetailPage() {
                   {tool.shortDescription}
                 </p>
 
-                {/* Pricing + Category */}
                 <div className="flex flex-wrap items-center gap-4">
                   <span
                     className={`px-5 py-2 rounded-2xl text-sm font-semibold capitalize border ${
@@ -225,7 +213,6 @@ export default function ToolDetailPage() {
               </div>
             </div>
 
-            {/* Visit Website Button */}
             <a
               href={tool.website}
               target="_blank"
@@ -236,7 +223,6 @@ export default function ToolDetailPage() {
               <ExternalLink size={19} />
             </a>
 
-            {/* Description */}
             <div className="prose prose-lg max-w-none text-[#1B1464]/80">
               <h2 className="text-2xl font-semibold text-[#1B1464] mb-5">
                 About this tool
@@ -246,7 +232,6 @@ export default function ToolDetailPage() {
               </div>
             </div>
 
-            {/* Features */}
             {tool.features && tool.features.length > 0 && (
               <div>
                 <h2 className="text-2xl font-semibold text-[#1B1464] mb-6">
@@ -272,7 +257,6 @@ export default function ToolDetailPage() {
               </div>
             )}
 
-            {/* Tags */}
             {tool.tags && tool.tags.length > 0 && (
               <div>
                 <h2 className="text-2xl font-semibold text-[#1B1464] mb-5">
@@ -292,7 +276,6 @@ export default function ToolDetailPage() {
             )}
           </div>
 
-          {/* Reviews Sidebar */}
           <div className="lg:w-96 shrink-0">
             <div className="bg-white border border-[#E8EAFF] rounded-3xl p-7 lg:sticky lg:top-24">
               <div className="flex items-center justify-between mb-8">
@@ -307,7 +290,6 @@ export default function ToolDetailPage() {
                 </div>
               </div>
 
-              {/* Review Form */}
               {isAuthenticated && user ? (
                 <form onSubmit={handleSubmitReview} className="space-y-6 mb-10">
                   <div>
@@ -371,7 +353,6 @@ export default function ToolDetailPage() {
                 </div>
               )}
 
-              {/* Reviews List */}
               <div className="space-y-10">
                 {reviews.length === 0 ? (
                   <p className="text-center text-[#1B1464]/50 py-12">

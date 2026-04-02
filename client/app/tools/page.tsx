@@ -1,15 +1,10 @@
 "use client";
+
 import { useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  Search,
-  X,
-  GitCompare,
-  ChevronLeft,
-  ChevronRight,
-  Check,
-} from "lucide-react";
-import { useTools, useCategories } from "@/lib/api";
+import { Search, X, GitCompare, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTools } from "@/hooks/useTools";
+import { useCategories } from "@/hooks/useCategories";
 import { ToolsQueryParams } from "@/types";
 import ToolCard from "@/components/ToolCard";
 import toast from "react-hot-toast";
@@ -27,16 +22,6 @@ const SORT_OPTS = [
   { value: "popular", label: "Most Popular" },
   { value: "name", label: "A → Z" },
 ];
-const PRICING_COLORS: Record<string, string> = {
-  free: "bg-emerald-50 text-emerald-700 border border-emerald-200",
-  freemium: "bg-blue-50 text-blue-700 border border-blue-200",
-  paid: "bg-amber-50 text-amber-700 border border-amber-200",
-  enterprise: "bg-purple-50 text-purple-700 border border-purple-200",
-};
-
-// ---------------------------------------------------------------------------
-// ToolsPage
-// ---------------------------------------------------------------------------
 
 export default function ToolsPage() {
   const searchParams = useSearchParams();
@@ -62,8 +47,6 @@ export default function ToolsPage() {
     [searchParams, router],
   );
 
-  // ── Data ──────────────────────────────────────────────────────────────────
-
   const toolsQuery = useTools({
     search: search || undefined,
     category: category === "all" ? undefined : category,
@@ -80,8 +63,6 @@ export default function ToolsPage() {
   const totalTools = toolsQuery.data?.meta?.pagination?.total ?? 0;
   const loading = toolsQuery.isLoading;
   const categories = categoriesQuery.data?.data ?? [];
-
-  // ── Compare ───────────────────────────────────────────────────────────────
 
   const toggleCompare = (id: number) => {
     setCompareList((prev) => {
@@ -101,8 +82,6 @@ export default function ToolsPage() {
     }
     router.push(`/tools/compare?ids=${compareList.join(",")}`);
   };
-
-  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-[#F8F9FF] pt-20">
@@ -126,7 +105,6 @@ export default function ToolsPage() {
               />
             </div>
 
-            {/* Category — v5: c.slug and c.name are flat */}
             <select
               value={category}
               onChange={(e) => updateParam("category", e.target.value)}
@@ -168,7 +146,6 @@ export default function ToolsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Result count */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-[#1B1464]/55 text-sm">
             {loading ? (
@@ -192,7 +169,6 @@ export default function ToolsPage() {
           )}
         </div>
 
-        {/* Grid */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -243,7 +219,6 @@ export default function ToolsPage() {
           </div>
         )}
 
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-2 mt-10">
             <button
@@ -280,7 +255,6 @@ export default function ToolsPage() {
         )}
       </div>
 
-      {/* Compare bar */}
       {compareList.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
           <div className="flex items-center gap-3 bg-[#1B1464] text-white px-5 py-3.5 rounded-2xl shadow-[0_8px_40px_rgba(27,20,100,.5)]">

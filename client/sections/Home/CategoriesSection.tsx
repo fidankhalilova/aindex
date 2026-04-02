@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useCategories, useTools } from "@/lib/api";
+import { useCategories } from "@/hooks/useCategories";
+import { useTools } from "@/hooks/useTools";
 
 // Define category colors and icons
 const CATEGORY_STYLES: Record<
@@ -41,7 +42,6 @@ const CATEGORY_STYLES: Record<
   },
 };
 
-// Default style for categories without specific mapping
 const DEFAULT_STYLE = {
   icon: "🔧",
   color: "from-[#6B7280]/10 to-[#6B7280]/5",
@@ -65,21 +65,17 @@ export default function CategoriesSection() {
   } = useCategories();
   const { data: toolsResponse, isLoading: toolsLoading } = useTools({
     pageSize: 1000,
-    // Don't filter by state, get all published tools
   });
 
-  // Create a map of category slug to tool count
   const getToolCountByCategory = () => {
     const countMap = new Map<string, number>();
 
     if (toolsResponse?.data && Array.isArray(toolsResponse.data)) {
       toolsResponse.data.forEach((tool: any) => {
-        // Handle both Strapi v4 and v5 structures
         const categories = tool.attributes?.categories || tool.categories;
 
         if (categories && Array.isArray(categories)) {
           categories.forEach((cat: any) => {
-            // Handle both nested and flat category structures
             const slug = cat.attributes?.slug || cat.slug;
             if (slug) {
               countMap.set(slug, (countMap.get(slug) || 0) + 1);
@@ -95,12 +91,10 @@ export default function CategoriesSection() {
 
   const toolCountByCategory = getToolCountByCategory();
 
-  // Get category style based on slug
   const getCategoryStyle = (slug: string) => {
     return CATEGORY_STYLES[slug] || DEFAULT_STYLE;
   };
 
-  // Get tool count for a category
   const getToolCount = (category: Category): number => {
     return toolCountByCategory.get(category.slug) || 0;
   };
@@ -180,7 +174,7 @@ export default function CategoriesSection() {
               <Link
                 key={category.id}
                 href={`/tools?category=${slug}`}
-                className={`group relative bg-gradient-to-br ${style.color} border ${style.border} rounded-2xl p-5 hover:shadow-[0_8px_32px_rgba(27,20,100,.12)] hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
+                className={`group relative bg-linear-to-br ${style.color} border ${style.border} rounded-2xl p-5 hover:shadow-[0_8px_32px_rgba(27,20,100,.12)] hover:-translate-y-1 transition-all duration-300 overflow-hidden`}
               >
                 <div className="absolute bottom-0 right-0 w-20 h-20 rounded-full bg-white/20 translate-x-6 translate-y-6 group-hover:scale-110 transition-transform duration-300" />
                 <div className="text-3xl mb-3">{style.icon}</div>
@@ -200,7 +194,6 @@ export default function CategoriesSection() {
                     {description}
                   </div>
                 )}
-                {/* Tool count badge with animation */}
                 {toolCount > 0 && (
                   <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                     <div className="bg-white/90 backdrop-blur-sm rounded-full px-2 py-0.5 text-xs font-semibold text-[#2E4BC6] shadow-sm">
@@ -213,7 +206,6 @@ export default function CategoriesSection() {
           })}
         </div>
 
-        {/* Mobile View All button */}
         <div className="mt-8 text-center sm:hidden">
           <Link
             href="/tools"

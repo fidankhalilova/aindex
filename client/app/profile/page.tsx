@@ -11,35 +11,38 @@ import {
   Edit2,
   Save,
   X,
-  Lock,
+  LogOut,
   Package,
   MessageSquare,
-  LogOut,
+  Plus,
+  Settings,
+  Heart,
+  Lock as LockIcon,
+  Globe,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthProvider";
-import {
-  useReviewsByUser,
-  useUserSubmittedTools,
-  useUpdateProfile,
-  useUploadAvatar,
-  getStrapiMedia,
-} from "@/lib/api";
+import { useReviewsByUser } from "@/hooks/useReviews";
+import { useUserSubmittedTools } from "@/hooks/useTools";
+import { useUpdateProfile, useUploadAvatar } from "@/hooks/useUsers";
+import { useFavorites } from "@/hooks/useFavorites";
+import { getStrapiMedia } from "@/lib/apiClient";
 import { Review, Tool } from "@/types";
 import toast from "react-hot-toast";
 
-type Tab = "reviews" | "submitted";
+type Tab = "overview" | "reviews" | "submitted" | "favorites";
 
 export default function ProfilePage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, refreshUser, logout } = useAuth();
 
-  const [tab, setTab] = useState<Tab>("reviews");
+  const [tab, setTab] = useState<Tab>("overview");
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
+
   const fileRef = useRef<HTMLInputElement>(null);
 
-  // Queries
   const { data: reviews = [] } = useReviewsByUser(user?.id ?? 0, {
     enabled: !!user?.id,
   });
@@ -47,6 +50,9 @@ export default function ProfilePage() {
   const { data: submitted = [] } = useUserSubmittedTools(user?.id ?? 0, {
     enabled: !!user?.id,
   });
+
+  const { favorites, removeFromFavorites, visibility, toggleVisibility } =
+    useFavorites();
 
   const updateProfile = useUpdateProfile();
   const uploadAvatar = useUploadAvatar();
@@ -66,7 +72,6 @@ export default function ProfilePage() {
 
   const handleSaveProfile = async () => {
     if (!user) return;
-
     try {
       await updateProfile.mutateAsync({
         userId: user.id,
@@ -118,7 +123,7 @@ export default function ProfilePage() {
       <div className="min-h-screen bg-[#F8F9FF] pt-20 flex flex-col items-center justify-center gap-6 px-4 text-center">
         <Lock size={40} className="text-[#2E4BC6]" />
         <h2 className="text-3xl font-bold text-[#1B1464]">
-          Sign in to view profile
+          Sign in to view your profile
         </h2>
         <Link
           href="/auth/login"
@@ -131,10 +136,7 @@ export default function ProfilePage() {
   }
 
   const avatarUrl = user.avatar?.url ? getStrapiMedia(user.avatar.url) : null;
-  const joinDate = new Date(user.createdAt).toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+  const joinYear = new Date(user.createdAt).getFullYear();
 
   const avgRating =
     reviews.length > 0
@@ -144,24 +146,24 @@ export default function ProfilePage() {
       : "—";
 
   return (
-    <div className="min-h-screen bg-[#F8F9FF] pt-14">
+    <div className="min-h-screen bg-[#F8F9FF]">
       {/* Hero Header */}
       <div className="bg-linear-to-br from-[#1B1464] via-[#2E4BC6] to-[#4A8FD4] relative overflow-hidden">
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 pb-24">
-          <div className="flex flex-col sm:flex-row items-center sm:items-end gap-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-24 pb-16">
+          <div className="flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
             {/* Avatar */}
             <div className="relative shrink-0">
-              <div className="w-28 h-28 rounded-3xl overflow-hidden border-4 border-white/30 shadow-xl bg-linear-to-br from-[#4A6DE0] to-[#00C2CB]">
+              <div className="w-28 h-28 md:w-32 md:h-32 rounded-3xl overflow-hidden border-4 border-white shadow-2xl bg-linear-to-br from-[#4A6DE0] to-[#00C2CB]">
                 {avatarUrl ? (
                   <Image
                     src={avatarUrl}
                     alt={user.username}
-                    width={112}
-                    height={112}
+                    width={128}
+                    height={128}
                     className="object-cover w-full h-full"
                   />
                 ) : (
-                  <span className="w-full h-full flex items-center justify-center text-white text-6xl font-bold">
+                  <span className="w-full h-full flex items-center justify-center text-white text-5xl md:text-6xl font-bold">
                     {user.username[0].toUpperCase()}
                   </span>
                 )}
@@ -169,7 +171,7 @@ export default function ProfilePage() {
 
               <button
                 onClick={() => fileRef.current?.click()}
-                className="absolute -bottom-2 -right-2 w-9 h-9 bg-white rounded-2xl shadow-lg flex items-center justify-center hover:bg-[#F8F9FF] transition-all"
+                className="absolute -bottom-2 -right-2 w-9 h-9 md:w-10 md:h-10 bg-white rounded-2xl shadow-xl flex items-center justify-center hover:scale-110 transition-all"
               >
                 <Camera size={18} className="text-[#2E4BC6]" />
               </button>
@@ -183,50 +185,51 @@ export default function ProfilePage() {
             </div>
 
             {/* User Info */}
-            <div className="flex-1 text-center sm:text-left">
-              {editing ? (
-                <input
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="text-3xl font-bold bg-white/10 border border-white/30 rounded-2xl px-4 py-2 text-white w-full max-w-xs focus:outline-none"
-                />
-              ) : (
-                <h1 className="text-4xl font-bold text-white">
-                  {user.username}
-                </h1>
-              )}
-
-              <p className="text-white/70 mt-1">
-                {user.email} • Joined {joinDate}
-              </p>
+            <div className="flex-1 text-white text-center md:text-left">
+              <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+                {editing ? (
+                  <input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="text-2xl md:text-3xl font-bold bg-white/10 border border-white/30 rounded-2xl px-4 py-1.5 text-white w-full max-w-xs focus:outline-none"
+                  />
+                ) : (
+                  <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+                    {user.username}
+                  </h1>
+                )}
+                <div className="inline-block px-3 py-0.5 bg-white/20 text-xs rounded-full backdrop-blur-md">
+                  Member since {joinYear}
+                </div>
+              </div>
+              <p className="text-white/75 mt-1 text-sm">{user.email}</p>
 
               {editing ? (
                 <textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  maxLength={250}
-                  rows={3}
-                  placeholder="Write something about yourself..."
-                  className="mt-4 w-full max-w-md bg-white/10 border border-white/30 rounded-2xl px-4 py-3 text-white placeholder-white/50 focus:outline-none"
+                  maxLength={280}
+                  rows={2}
+                  placeholder="Tell the community about yourself..."
+                  className="mt-3 w-full max-w-lg bg-white/10 border border-white/30 rounded-2xl px-4 py-2 text-sm text-white placeholder-white/60 focus:outline-none resize-y"
                 />
               ) : (
-                <p className="text-white/75 mt-3 max-w-md">
-                  {user.bio || "No bio added yet."}
+                <p className="text-white/80 mt-2 max-w-md mx-auto md:mx-0 leading-relaxed text-sm">
+                  {user.bio || "No bio yet. Tell the community about yourself!"}
                 </p>
               )}
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
               {editing ? (
                 <>
                   <button
                     onClick={handleSaveProfile}
                     disabled={updateProfile.isPending}
-                    className="flex items-center gap-2 bg-white text-[#2E4BC6] font-semibold px-6 py-3 rounded-2xl hover:bg-[#F8F9FF]"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-[#2E4BC6] font-semibold px-5 py-2 rounded-xl text-sm hover:bg-white/90"
                   >
-                    <Save size={18} />
-                    Save
+                    <Save size={16} /> Save
                   </button>
                   <button
                     onClick={() => {
@@ -234,25 +237,25 @@ export default function ProfilePage() {
                       setBio(user.bio || "");
                       setUsername(user.username);
                     }}
-                    className="flex items-center gap-2 border border-white/40 text-white px-6 py-3 rounded-2xl hover:bg-white/10"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 border border-white/40 text-white px-5 py-2 rounded-xl text-sm hover:bg-white/10"
                   >
-                    <X size={18} /> Cancel
+                    <X size={16} /> Cancel
                   </button>
                 </>
               ) : (
                 <>
                   <button
                     onClick={() => setEditing(true)}
-                    className="flex items-center gap-2 border border-white/40 text-white px-6 py-3 rounded-2xl hover:bg-white/10"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 border border-white/40 text-white px-5 py-2 rounded-xl text-sm hover:bg-white/10"
                   >
-                    <Edit2 size={18} /> Edit Profile
+                    <Edit2 size={16} /> Edit Profile
                   </button>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center gap-2 text-red-200 border border-red-400/30 px-6 py-3 rounded-2xl hover:bg-red-500/10"
+                  <Link
+                    href="/tools/submit"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white text-[#2E4BC6] font-semibold px-5 py-2 rounded-xl text-sm hover:bg-white/90"
                   >
-                    <LogOut size={18} /> Logout
-                  </button>
+                    <Plus size={16} /> Submit Tool
+                  </Link>
                 </>
               )}
             </div>
@@ -260,65 +263,193 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="max-w-4xl mx-auto px-4 mt-8 mb-10">
-        <div className="grid grid-cols-3 gap-4">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-8 relative z-10 pb-20">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           {[
-            { icon: MessageSquare, label: "Reviews", value: reviews.length },
-            { icon: Package, label: "Submitted", value: submitted.length },
-            { icon: Star, label: "Avg Rating", value: avgRating },
-          ].map(({ icon: Icon, label, value }) => (
+            {
+              icon: MessageSquare,
+              label: "Reviews Written",
+              value: reviews.length,
+              color: "text-rose-500",
+            },
+            {
+              icon: Package,
+              label: "Tools Submitted",
+              value: submitted.length,
+              color: "text-emerald-500",
+            },
+            {
+              icon: Star,
+              label: "Average Rating",
+              value: avgRating,
+              color: "text-amber-500",
+            },
+            {
+              icon: Heart,
+              label: "Favorites",
+              value: favorites.length,
+              color: "text-pink-500",
+            },
+          ].map(({ icon: Icon, label, value, color }) => (
             <div
               key={label}
-              className="bg-white rounded-3xl p-6 text-center border border-[#E8EAFF] shadow-sm"
+              className="bg-white rounded-2xl p-5 shadow-sm border border-[#E8EAFF] hover:shadow transition-all"
             >
-              <Icon size={24} className="text-[#2E4BC6] mx-auto mb-3" />
+              <Icon size={26} className={`${color} mb-3`} />
               <div className="text-3xl font-bold text-[#1B1464]">{value}</div>
-              <div className="text-xs text-[#1B1464]/50 mt-1">{label}</div>
+              <div className="text-xs text-[#1B1464]/60 mt-1">{label}</div>
             </div>
           ))}
         </div>
-      </div>
 
-      {/* Tabs & Content */}
-      <div className="max-w-4xl mx-auto px-4 pb-20">
-        <div className="flex border-b border-[#E8EAFF] mb-8">
-          {(["reviews", "submitted"] as Tab[]).map((t) => (
+        {/* Tabs */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#E8EAFF] mb-8 gap-4">
+          <div className="flex overflow-x-auto pb-1 scrollbar-hide">
+            {(["overview", "reviews", "submitted", "favorites"] as Tab[]).map(
+              (t) => (
+                <button
+                  key={t}
+                  onClick={() => setTab(t)}
+                  className={`px-7 py-3 font-medium text-base whitespace-nowrap transition-all border-b-2 ${
+                    tab === t
+                      ? "border-[#2E4BC6] text-[#2E4BC6]"
+                      : "border-transparent text-[#1B1464]/60 hover:text-[#1B1464]"
+                  }`}
+                >
+                  {t === "favorites"
+                    ? `Favorites (${favorites.length})`
+                    : t.charAt(0).toUpperCase() + t.slice(1)}
+                </button>
+              ),
+            )}
+          </div>
+
+          <div className="flex items-center gap-4 text-sm">
             <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`pb-4 px-8 font-medium text-lg transition-all border-b-2 ${
-                tab === t
-                  ? "border-[#2E4BC6] text-[#2E4BC6]"
-                  : "border-transparent text-[#1B1464]/60 hover:text-[#1B1464]"
-              }`}
+              onClick={handleLogout}
+              className="flex items-center gap-2 text-red-600 hover:text-red-700"
             >
-              {t === "reviews"
-                ? `My Reviews (${reviews.length})`
-                : `Submitted Tools (${submitted.length})`}
+              <LogOut size={18} /> Logout
             </button>
-          ))}
+            <Link
+              href="/settings"
+              className="flex items-center gap-2 text-[#1B1464]/70 hover:text-[#1B1464]"
+            >
+              <Settings size={18} /> Account Settings
+            </Link>
+          </div>
         </div>
 
-        {tab === "reviews" ? (
-          reviews.length === 0 ? (
+        {/* ==================== OVERVIEW TAB (Default) ==================== */}
+        {tab === "overview" && (
+          <div className="space-y-10">
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-semibold text-[#1B1464]">
+                  Recent Activity
+                </h3>
+                <Link
+                  href="#"
+                  className="text-[#2E4BC6] text-sm hover:underline"
+                >
+                  View all activity →
+                </Link>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Recent Reviews */}
+                {reviews.length > 0 && (
+                  <div className="bg-white rounded-3xl p-6 border border-[#E8EAFF]">
+                    <h4 className="font-semibold mb-5 flex items-center gap-2">
+                      <MessageSquare size={20} className="text-[#2E4BC6]" />{" "}
+                      Recent Reviews
+                    </h4>
+                    <div className="space-y-6">
+                      {reviews.slice(0, 3).map((review: Review) => (
+                        <div
+                          key={review.id}
+                          className="border-b border-[#E8EAFF] pb-6 last:border-0 last:pb-0"
+                        >
+                          <p className="font-medium text-[#1B1464]">
+                            {review.tool?.name || "Unknown Tool"}
+                          </p>
+                          <p className="text-sm text-[#1B1464]/70 mt-1 line-clamp-2">
+                            {review.content}
+                          </p>
+                          <p className="text-xs text-[#1B1464]/50 mt-2">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recently Submitted */}
+                {submitted.length > 0 && (
+                  <div className="bg-white rounded-3xl p-6 border border-[#E8EAFF]">
+                    <h4 className="font-semibold mb-5 flex items-center gap-2">
+                      <Package size={20} className="text-[#2E4BC6]" /> Recently
+                      Submitted
+                    </h4>
+                    <div className="space-y-5">
+                      {submitted.slice(0, 3).map((tool: Tool) => (
+                        <div key={tool.id} className="flex gap-4 items-center">
+                          <div className="w-12 h-12 rounded-2xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF] shrink-0">
+                            {tool.logo && (
+                              <Image
+                                src={getStrapiMedia(tool.logo.url)!}
+                                alt={tool.name}
+                                width={48}
+                                height={48}
+                                className="object-contain p-1.5"
+                              />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-[#1B1464] truncate">
+                              {tool.name}
+                            </p>
+                            <p className="text-xs text-[#1B1464]/50">
+                              {new Date(tool.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {reviews.length === 0 && submitted.length === 0 && (
+                  <div className="col-span-2 text-center py-16 bg-white rounded-3xl border border-[#E8EAFF]">
+                    <p className="text-[#1B1464]/60">No recent activity yet.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reviews Tab */}
+        {tab === "reviews" &&
+          (reviews.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl border border-[#E8EAFF]">
               <MessageSquare
-                size={60}
-                className="mx-auto text-[#E8EAFF] mb-4"
+                size={70}
+                className="mx-auto text-[#E8EAFF] mb-6"
               />
-              <p className="text-[#1B1464]/50">
+              <p className="text-xl text-[#1B1464]/60">
                 You haven't written any reviews yet.
               </p>
             </div>
           ) : (
             <div className="space-y-6">
-              {reviews.map((review) => (
+              {reviews.map((review: Review) => (
                 <div
                   key={review.id}
                   className="bg-white rounded-3xl p-7 border border-[#E8EAFF]"
                 >
-                  {/* Review Header */}
                   <div className="flex justify-between items-start mb-5">
                     <div>
                       <p className="font-semibold text-[#1B1464]">
@@ -332,86 +463,164 @@ export default function ProfilePage() {
                       {"★".repeat(review.rating)}
                     </div>
                   </div>
-
-                  {review.title && (
-                    <p className="font-medium mb-3">{review.title}</p>
-                  )}
-                  <p className="text-[#1B1464]/80 leading-relaxed">
-                    {review.content}
-                  </p>
-
-                  {(review.pros || review.cons) && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                      {review.pros && (
-                        <div className="bg-emerald-50 rounded-2xl p-5">
-                          <p className="font-medium text-emerald-700 mb-1">
-                            Pros
-                          </p>
-                          <p className="text-emerald-700/80 text-sm">
-                            {review.pros}
-                          </p>
-                        </div>
-                      )}
-                      {review.cons && (
-                        <div className="bg-red-50 rounded-2xl p-5">
-                          <p className="font-medium text-red-700 mb-1">Cons</p>
-                          <p className="text-red-700/80 text-sm">
-                            {review.cons}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <p className="text-[#1B1464]/80">{review.content}</p>
                 </div>
               ))}
             </div>
-          )
-        ) : submitted.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-[#E8EAFF]">
-            <Package size={60} className="mx-auto text-[#E8EAFF] mb-4" />
-            <p className="text-[#1B1464]/50">
-              You haven't submitted any tools yet.
-            </p>
-            <Link
-              href="/tools/submit"
-              className="mt-6 inline-block bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white px-8 py-3 rounded-2xl font-semibold"
-            >
-              Submit Your First Tool
-            </Link>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {submitted.map((tool) => (
-              <div
-                key={tool.id}
-                className="bg-white rounded-3xl p-6 border border-[#E8EAFF]"
+          ))}
+
+        {/* Submitted Tab */}
+        {tab === "submitted" &&
+          (submitted.length === 0 ? (
+            <div className="text-center py-20 bg-white rounded-3xl border border-[#E8EAFF]">
+              <Package size={70} className="mx-auto text-[#E8EAFF] mb-6" />
+              <p className="text-xl text-[#1B1464]/60">
+                You haven't submitted any tools yet.
+              </p>
+              <Link
+                href="/tools/submit"
+                className="mt-6 inline-block bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white px-8 py-3 rounded-2xl font-medium"
               >
-                <div className="flex gap-4">
-                  <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF] shrink-0">
-                    {tool.logo && (
-                      <Image
-                        src={getStrapiMedia(tool.logo.url)!}
-                        alt={tool.name}
-                        width={56}
-                        height={56}
-                        className="object-contain p-2"
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg text-[#1B1464]">
-                      {tool.name}
-                    </h3>
-                    <p className="text-xs text-[#1B1464]/50 mt-1">
-                      {new Date(tool.createdAt).toLocaleDateString()}
-                    </p>
-                    <p className="line-clamp-2 text-sm text-[#1B1464]/70 mt-3">
-                      {tool.shortDescription}
-                    </p>
+                Submit Your First Tool
+              </Link>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {submitted.map((tool: Tool) => (
+                <div
+                  key={tool.id}
+                  className="bg-white rounded-3xl p-6 border border-[#E8EAFF]"
+                >
+                  <div className="flex gap-4">
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF]">
+                      {tool.logo && (
+                        <Image
+                          src={getStrapiMedia(tool.logo.url)!}
+                          alt={tool.name}
+                          width={56}
+                          height={56}
+                          className="object-contain p-2"
+                        />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg text-[#1B1464]">
+                        {tool.name}
+                      </h3>
+                      <p className="text-xs text-[#1B1464]/50 mt-1">
+                        {new Date(tool.createdAt).toLocaleDateString()}
+                      </p>
+                      <p className="line-clamp-2 text-sm text-[#1B1464]/70 mt-3">
+                        {tool.shortDescription}
+                      </p>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          ))}
+
+        {/* Favorites Tab with Public/Private Toggle */}
+        {tab === "favorites" && (
+          <div>
+            {/* Visibility Toggle */}
+            <div className="bg-white rounded-3xl p-6 border border-[#E8EAFF] mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                {visibility === "public" ? (
+                  <Globe className="text-emerald-600" size={28} />
+                ) : (
+                  <LockIcon className="text-amber-600" size={28} />
+                )}
+                <div>
+                  <p className="font-semibold text-lg text-[#1B1464]">
+                    Favorites are{" "}
+                    {visibility === "public" ? "Public" : "Private"}
+                  </p>
+                  <p className="text-sm text-[#1B1464]/60">
+                    {visibility === "public"
+                      ? "Other users can see your favorite tools"
+                      : "Only you can see your favorites"}
+                  </p>
+                </div>
               </div>
-            ))}
+
+              <button
+                onClick={toggleVisibility}
+                className={`px-6 py-2.5 rounded-2xl font-medium text-sm transition-all ${
+                  visibility === "public"
+                    ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                    : "bg-amber-100 text-amber-700 hover:bg-amber-200"
+                }`}
+              >
+                Make {visibility === "public" ? "Private" : "Public"}
+              </button>
+            </div>
+
+            {/* Favorites List */}
+            {favorites.length === 0 ? (
+              <div className="text-center py-20 bg-white rounded-3xl border border-[#E8EAFF]">
+                <Heart size={70} className="mx-auto text-[#E8EAFF] mb-6" />
+                <p className="text-xl text-[#1B1464]/60">
+                  Your favorites list is empty
+                </p>
+                <p className="text-[#1B1464]/50 mt-2">
+                  Tools you add to favorites will appear here
+                </p>
+                <Link
+                  href="/tools"
+                  className="mt-6 inline-block bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white px-8 py-3 rounded-2xl font-medium"
+                >
+                  Browse Tools
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {favorites.map((tool: Tool) => (
+                  <div
+                    key={tool.id}
+                    className="bg-white rounded-3xl p-6 border border-[#E8EAFF] relative group"
+                  >
+                    <button
+                      onClick={() => removeFromFavorites(tool.id)}
+                      className="absolute top-5 right-5 text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      <Heart size={24} fill="currentColor" />
+                    </button>
+
+                    <div className="flex gap-4">
+                      <div className="w-14 h-14 rounded-2xl overflow-hidden bg-[#F8F9FF] border border-[#E8EAFF] shrink-0">
+                        {tool.logo && (
+                          <Image
+                            src={getStrapiMedia(tool.logo.url)!}
+                            alt={tool.name}
+                            width={56}
+                            height={56}
+                            className="object-contain p-2"
+                          />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg text-[#1B1464] pr-8">
+                          {tool.name}
+                        </h3>
+                        <p className="text-xs text-[#1B1464]/50 mt-1">
+                          Favorited recently
+                        </p>
+                        <p className="line-clamp-2 text-sm text-[#1B1464]/70 mt-3">
+                          {tool.shortDescription}
+                        </p>
+                        <Link
+                          href={`/tools/${tool.id}`}
+                          className="text-[#2E4BC6] text-sm font-medium mt-4 inline-block hover:underline"
+                        >
+                          View Details →
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
