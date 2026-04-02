@@ -1,21 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  Star,
-  ExternalLink,
-  ArrowLeft,
-  Check,
-  X,
-  Trophy,
-  Sparkles,
-} from "lucide-react";
+import { Star, ExternalLink, ArrowLeft, Trophy, Sparkles } from "lucide-react";
 import { useToolsByIds } from "@/hooks/useTools";
 import { getStrapiMedia } from "@/lib/apiClient";
-import { Tool, Feature, Tag } from "@/types";
 
 const PRICING_COLORS: Record<string, string> = {
   free: "bg-emerald-100 text-emerald-700",
@@ -24,9 +15,7 @@ const PRICING_COLORS: Record<string, string> = {
   enterprise: "bg-purple-100 text-purple-700",
 };
 
-export const dynamic = "force-dynamic";
-
-export default function ComparePage() {
+function ComparePageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -40,7 +29,6 @@ export default function ComparePage() {
 
   const { data: tools = [], isLoading, error } = useToolsByIds(ids);
 
-  // In compare/page.tsx
   const handlePickForMe = () => {
     if (tools.length < 2) return;
     const winner = [...tools].sort((a, b) => {
@@ -49,8 +37,6 @@ export default function ComparePage() {
         ? ratingDiff
         : (b.viewsCount || 0) - (a.viewsCount || 0);
     })[0];
-
-    // Use slug instead of ID
     router.push(`/tools/compare/winner?slug=${winner.slug}`);
   };
 
@@ -226,7 +212,7 @@ export default function ComparePage() {
                 ))}
               </div>
 
-              {/* Rating & Reviews */}
+              {/* Rating */}
               <div
                 className="grid"
                 style={{
@@ -261,6 +247,7 @@ export default function ComparePage() {
                 ))}
               </div>
 
+              {/* Reviews */}
               <div
                 className="grid"
                 style={{
@@ -321,5 +308,24 @@ export default function ComparePage() {
         )}
       </div>
     </div>
+  );
+}
+
+export const dynamic = "force-dynamic";
+
+export default function ComparePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8F9FF] pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-10 h-10 rounded-full border-4 border-[#E8EAFF] border-t-[#2E4BC6] animate-spin mx-auto mb-4" />
+            <p className="text-[#1B1464]/60 text-sm">Loading comparison...</p>
+          </div>
+        </div>
+      }
+    >
+      <ComparePageInner />
+    </Suspense>
   );
 }

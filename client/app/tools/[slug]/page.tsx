@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,8 +12,6 @@ import { incrementToolViews } from "@/services/toolsService";
 import { Tool, Review, Feature, Tag } from "@/types";
 import { useAuth } from "@/context/AuthProvider";
 import toast from "react-hot-toast";
-
-export const dynamic = "force-dynamic";
 
 const PRICING_COLORS: Record<string, string> = {
   free: "bg-emerald-50 text-emerald-700 border border-emerald-200",
@@ -30,7 +28,6 @@ function StarPicker({
   onChange: (v: number) => void;
 }) {
   const [hovered, setHovered] = useState(0);
-
   return (
     <div className="flex items-center gap-1.5">
       {Array.from({ length: 5 }).map((_, i) => {
@@ -59,7 +56,7 @@ function StarPicker({
   );
 }
 
-export default function ToolDetailPage() {
+function ToolDetailPageInner() {
   const { slug } = useParams<{ slug: string }>();
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
@@ -75,12 +72,12 @@ export default function ToolDetailPage() {
     isLoading: isToolLoading,
     error: toolError,
   } = useTool(slug as string);
-
   const { data: reviews = [], isLoading: isReviewsLoading } = useReviewsByTool(
     tool?.id ?? 0,
-    { enabled: !!tool?.id },
+    {
+      enabled: !!tool?.id,
+    },
   );
-
   const createReviewMutation = useCreateReview();
 
   useEffect(() => {
@@ -94,7 +91,6 @@ export default function ToolDetailPage() {
     if (!rating) return toast.error("Please select a rating");
     if (!content.trim()) return toast.error("Please write a review");
     if (!user?.id || !tool?.id) return toast.error("Please log in");
-
     try {
       await createReviewMutation.mutateAsync({
         rating,
@@ -105,7 +101,6 @@ export default function ToolDetailPage() {
         tool: tool.id,
         user: user.id,
       });
-
       toast.success("Review submitted successfully!");
       setRating(0);
       setTitle("");
@@ -188,21 +183,15 @@ export default function ToolDetailPage() {
                     </div>
                   )}
                 </div>
-
                 <p className="text-lg text-[#1B1464]/70 leading-relaxed mb-5">
                   {tool.shortDescription}
                 </p>
-
                 <div className="flex flex-wrap items-center gap-4">
                   <span
-                    className={`px-5 py-2 rounded-2xl text-sm font-semibold capitalize border ${
-                      PRICING_COLORS[tool.pricing?.toLowerCase() || "free"] ||
-                      ""
-                    }`}
+                    className={`px-5 py-2 rounded-2xl text-sm font-semibold capitalize border ${PRICING_COLORS[tool.pricing?.toLowerCase() || "free"] || ""}`}
                   >
                     {tool.pricing || "Free"}
                   </span>
-
                   {tool.categories && tool.categories.length > 0 && (
                     <div className="text-[#1B1464]/60 text-sm">
                       in{" "}
@@ -221,8 +210,7 @@ export default function ToolDetailPage() {
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 bg-[#2E4BC6] hover:bg-[#1e3a9f] text-white px-8 py-3.5 rounded-2xl font-semibold transition-all shadow-sm"
             >
-              Visit Website
-              <ExternalLink size={19} />
+              Visit Website <ExternalLink size={19} />
             </a>
 
             <div className="prose prose-lg max-w-none text-[#1B1464]/80">
@@ -300,7 +288,6 @@ export default function ToolDetailPage() {
                     </label>
                     <StarPicker value={rating} onChange={setRating} />
                   </div>
-
                   <input
                     type="text"
                     value={title}
@@ -308,7 +295,6 @@ export default function ToolDetailPage() {
                     placeholder="Review title (optional)"
                     className="w-full px-5 py-3.5 border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6] text-base"
                   />
-
                   <textarea
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
@@ -317,7 +303,6 @@ export default function ToolDetailPage() {
                     className="w-full px-5 py-3.5 border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6] resize-y text-base"
                     required
                   />
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <textarea
                       value={pros}
@@ -334,7 +319,6 @@ export default function ToolDetailPage() {
                       className="w-full px-5 py-3.5 border border-[#E8EAFF] rounded-2xl focus:outline-none focus:border-[#2E4BC6] text-sm resize-y"
                     />
                   </div>
-
                   <button
                     type="submit"
                     disabled={createReviewMutation.isPending}
@@ -379,17 +363,14 @@ export default function ToolDetailPage() {
                           {new Date(review.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-
                       {review.title && (
                         <p className="font-medium text-lg mb-2">
                           {review.title}
                         </p>
                       )}
-
                       <p className="text-[#1B1464]/80 leading-relaxed">
                         {review.content}
                       </p>
-
                       {(review.pros || review.cons) && (
                         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-5 text-sm">
                           {review.pros && (
@@ -421,5 +402,24 @@ export default function ToolDetailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export const dynamic = "force-dynamic";
+
+export default function ToolDetailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen pt-20 flex items-center justify-center bg-[#F8F9FF]">
+          <div className="text-center">
+            <div className="w-12 h-12 rounded-full border-4 border-[#E8EAFF] border-t-[#2E4BC6] animate-spin mx-auto mb-4" />
+            <p className="text-[#1B1464]/60">Loading tool details...</p>
+          </div>
+        </div>
+      }
+    >
+      <ToolDetailPageInner />
+    </Suspense>
   );
 }

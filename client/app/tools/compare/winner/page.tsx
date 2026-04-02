@@ -1,23 +1,21 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Trophy, ArrowLeft, ExternalLink, Star } from "lucide-react";
-import { useTool } from "@/hooks/useTools"; // Use useTool for slug-based fetch
+import { useTool } from "@/hooks/useTools";
 import { getStrapiMedia } from "@/lib/apiClient";
 
-export const dynamic = "force-dynamic";
-
-export default function CompareWinnerPage() {
+function CompareWinnerPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const slug = searchParams.get("slug");
 
-  const { data: tool, isLoading, error } = useTool(slug as string); // Use useTool with slug
+  const { data: tool, isLoading, error } = useTool(slug as string);
 
-  // Redirect if no valid slug
   useEffect(() => {
     if (!slug) {
       router.replace("/compare");
@@ -70,7 +68,6 @@ export default function CompareWinnerPage() {
               Our Winner
             </span>
           </div>
-
           <h1 className="text-5xl md:text-6xl font-display font-bold leading-tight">
             {tool.name} <span className="text-amber-300">wins!</span>
           </h1>
@@ -119,7 +116,6 @@ export default function CompareWinnerPage() {
               </div>
               <p className="text-sm text-white/60">Rating</p>
             </div>
-
             <div className="text-center">
               <div className="text-5xl font-bold">{tool.reviewsCount || 0}</div>
               <p className="text-sm text-white/60 mt-2">Reviews</p>
@@ -141,7 +137,6 @@ export default function CompareWinnerPage() {
             >
               Visit Website <ExternalLink size={20} />
             </a>
-
             <Link
               href={`/tools/${tool.slug}`}
               className="flex-1 sm:flex-none border border-white/60 hover:bg-white/10 font-semibold py-4 px-10 rounded-2xl transition-all"
@@ -159,5 +154,24 @@ export default function CompareWinnerPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export const dynamic = "force-dynamic";
+
+export default function CompareWinnerPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-linear-to-br from-[#1B1464] to-[#00C2CB] flex items-center justify-center text-white">
+          <div className="text-center">
+            <Trophy className="w-20 h-20 mx-auto mb-6 animate-bounce" />
+            <p className="text-2xl font-medium">Declaring the winner...</p>
+          </div>
+        </div>
+      }
+    >
+      <CompareWinnerPageInner />
+    </Suspense>
   );
 }
