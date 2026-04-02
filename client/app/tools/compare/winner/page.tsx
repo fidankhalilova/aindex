@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = "force-dynamic";
 import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -156,8 +156,6 @@ function CompareWinnerPageInner() {
     </div>
   );
 }
-
-export const dynamic = "force-dynamic";
 
 export default function CompareWinnerPage() {
   return (

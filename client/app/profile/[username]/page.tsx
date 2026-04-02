@@ -1,6 +1,6 @@
 // app/profile/[username]/page.tsx
 "use client";
-
+export const dynamic = "force-dynamic";
 import { useEffect, useState, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -30,7 +30,7 @@ import { Review, Tool } from "@/types";
 import toast from "react-hot-toast";
 
 type Tab = "overview" | "reviews" | "submitted" | "favorites";
-export const dynamic = "force-dynamic";
+
 export default function ProfilePage({
   params,
 }: {

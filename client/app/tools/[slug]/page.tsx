@@ -1,5 +1,5 @@
 "use client";
-
+export const dynamic = "force-dynamic";
 import { Suspense, useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
@@ -404,8 +404,6 @@ function ToolDetailPageInner() {
     </div>
   );
 }
-
-export const dynamic = "force-dynamic";
 
 export default function ToolDetailPage() {
   return (

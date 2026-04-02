@@ -1,4 +1,6 @@
 "use client";
+export const dynamic = "force-dynamic";
+export const runtime = "edge";
 
 import { Suspense, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -310,9 +312,6 @@ function ComparePageInner() {
     </div>
   );
 }
-
-export const dynamic = "force-dynamic";
-export const runtime = "edge";
 
 export default function ComparePage() {
   return (
