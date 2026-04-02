@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Search, X, GitCompare, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTools } from "@/hooks/useTools";
@@ -23,7 +23,8 @@ const SORT_OPTS = [
   { value: "name", label: "A → Z" },
 ];
 
-export default function ToolsPage() {
+// Move your main component logic here
+function ToolsPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -279,5 +280,23 @@ export default function ToolsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrap the main component in Suspense
+export default function ToolsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#F8F9FF] pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <div className="w-10 h-10 rounded-full border-4 border-[#E8EAFF] border-t-[#2E4BC6] animate-spin mx-auto mb-4" />
+            <p className="text-[#1B1464]/60 text-sm">Loading tools...</p>
+          </div>
+        </div>
+      }
+    >
+      <ToolsPageContent />
+    </Suspense>
   );
 }
