@@ -24,6 +24,8 @@ const PRICING_COLORS: Record<string, string> = {
   enterprise: "bg-purple-100 text-purple-700",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function ComparePage() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -104,7 +106,7 @@ export default function ComparePage() {
           {tools.length >= 2 && (
             <button
               onClick={handlePickForMe}
-              className="group flex items-center gap-3 bg-gradient-to-r from-[#2E4BC6] via-[#00C2CB] to-[#2E4BC6] text-white font-semibold px-8 py-3.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+              className="group flex items-center gap-3 bg-linear-to-r from-[#2E4BC6] via-[#00C2CB] to-[#2E4BC6] text-white font-semibold px-8 py-3.5 rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
             >
               <Sparkles
                 className="group-hover:rotate-12 transition-transform"
@@ -124,7 +126,7 @@ export default function ComparePage() {
             </p>
             <Link
               href="/tools"
-              className="inline-flex bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-8 py-3.5 rounded-2xl hover:shadow-xl transition-all"
+              className="inline-flex bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-8 py-3.5 rounded-2xl hover:shadow-xl transition-all"
             >
               Browse Tools
             </Link>
@@ -307,7 +309,7 @@ export default function ComparePage() {
                   <div key={tool.id} className="p-6 flex justify-center">
                     <Link
                       href={`/tools/${tool.slug}`}
-                      className="bg-gradient-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-10 py-3 rounded-2xl hover:shadow-md transition-all text-sm"
+                      className="bg-linear-to-r from-[#2E4BC6] to-[#00C2CB] text-white font-semibold px-10 py-3 rounded-2xl hover:shadow-md transition-all text-sm"
                     >
                       View Details
                     </Link>

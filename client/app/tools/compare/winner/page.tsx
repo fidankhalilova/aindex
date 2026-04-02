@@ -24,7 +24,7 @@ export default function CompareWinnerPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1B1464] to-[#00C2CB] flex items-center justify-center text-white">
+      <div className="min-h-screen bg-linear-to-br from-[#1B1464] to-[#00C2CB] flex items-center justify-center text-white">
         <div className="text-center">
           <Trophy className="w-20 h-20 mx-auto mb-6 animate-bounce" />
           <p className="text-2xl font-medium">Declaring the winner...</p>
@@ -52,7 +52,7 @@ export default function CompareWinnerPage() {
   const logoUrl = getStrapiMedia(tool.logo?.url ?? null);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1B1464] via-[#2E4BC6] to-[#00C2CB] text-white pt-20 pb-20">
+    <div className="min-h-screen bg-linear-to-br from-[#1B1464] via-[#2E4BC6] to-[#00C2CB] text-white pt-20 pb-20">
       <div className="max-w-3xl mx-auto px-6 text-center">
         <button
           onClick={() => router.back()}
