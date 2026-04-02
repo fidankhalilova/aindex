@@ -13,6 +13,8 @@ import { Tool, Review, Feature, Tag } from "@/types";
 import { useAuth } from "@/context/AuthProvider";
 import toast from "react-hot-toast";
 
+export const dynamic = "force-dynamic";
+
 const PRICING_COLORS: Record<string, string> = {
   free: "bg-emerald-50 text-emerald-700 border border-emerald-200",
   freemium: "bg-blue-50 text-blue-700 border border-blue-200",

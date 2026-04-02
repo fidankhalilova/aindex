@@ -8,6 +8,8 @@ import { Trophy, ArrowLeft, ExternalLink, Star } from "lucide-react";
 import { useTool } from "@/hooks/useTools"; // Use useTool for slug-based fetch
 import { getStrapiMedia } from "@/lib/apiClient";
 
+export const dynamic = "force-dynamic";
+
 export default function CompareWinnerPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
