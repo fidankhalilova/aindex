@@ -9,6 +9,10 @@ export default function StatsSection() {
   return (
     <section className="py-16 bg-[#F8F9FF]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <span className="text-[#2E4BC6] text-sm font-semibold uppercase tracking-wider mb-3 block">
+          We aim for..
+        </span>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {STATS.map(({ value, label, icon }) => (
             <div

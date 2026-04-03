@@ -108,6 +108,7 @@ export default function RootLayout({
                 },
               }}
             />
+            <ChatWidget />
           </AuthProvider>
         </UseQueryProvider>
       </body>

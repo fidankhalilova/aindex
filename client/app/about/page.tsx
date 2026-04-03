@@ -7,19 +7,19 @@ export const metadata: Metadata = { title: "About Us" };
 const TEAM = [
   {
     name: "Fidan Khalilova",
-    role: "Group Leader & Product",
+    role: "Group Leader & Web Developer",
     initial: "F",
     color: "from-[#2E4BC6] to-[#7B5CF5]",
   },
   {
     name: "Nizami Hajiyev",
-    role: "Full-Stack Developer",
+    role: "Product Designer & Web Developer",
     initial: "N",
     color: "from-[#7B5CF5] to-[#00C2CB]",
   },
   {
     name: "Murad Safarli",
-    role: "Full-Stack Developer",
+    role: "Marketing",
     initial: "M",
     color: "from-[#00C2CB] to-[#2E4BC6]",
   },
@@ -31,7 +31,7 @@ const TEAM = [
   },
   {
     name: "Ali Ismayilov",
-    role: "Frontend & UI/UX",
+    role: "Sales & Operations",
     initial: "A",
     color: "from-[#4A6DE0] to-[#00C2CB]",
   },
